@@ -1,6 +1,16 @@
+from mapa import Mapa
+from clima import Clima
+from pedido import Pedido
+
 import pygame
+import APIcontroller
 from pygame.locals import *
- 
+
+APIcontroller.CollectInformacionAPI()
+
+mapa = Mapa()
+print(mapa.get_tile(0, 0)) 
+
 class App:
     def __init__(self):
         self._running = True
