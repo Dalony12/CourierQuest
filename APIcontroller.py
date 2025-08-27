@@ -1,10 +1,30 @@
 import requests
 
-def CollectInformacionAPI():
+
+
+def CollectInformacionMapa():
     #Collect de los datos del mapa
     mapaUrl = "https://tigerds-api.kindflower-ccaf48b6.eastus.azurecontainerapps.io/city/map"
 
     response = requests.get(mapaUrl)
+
+    if response.status_code == 200:
+        data = response.json()
+        data = data["data"]
+        nombreCiudad = data["city_name"]
+        ancho = data["width"]
+        largo = data["height"]
+        meta = data["goal"]
+        tiempoMaximo = data["max_time"]
+        celdas = data["tiles"]
+        descripcionCeldas = data["legend"] 
+        return data
+    else: print("Error al obtener el mapa:", response.status_code)
+
+def CollectInformacionPedidos():
+    #Collect de los datos de los pedidos
+    pedidosUrl = "https://tigerds-api.kindflower-ccaf48b6.eastus.azurecontainerapps.io/city/jobs"
+    response = requests.get(pedidosUrl)
 
     if response.status_code == 200:
         data = response.json()
