@@ -1,3 +1,4 @@
+import sys
 from mapa import Mapa
 from clima import Clima
 from pedido import Pedido
@@ -12,7 +13,7 @@ pygame.init()
 # Configuración de pantalla según mapa
 mapa_data = APIcontroller.CollectInformacionMapa()
 mapa = Mapa(mapa_data)
-ancho, alto = 800, 600
+ancho, alto = 600, 600
 pantalla = pygame.display.set_mode((ancho, alto))
 pygame.display.set_caption("CourierQuest")
 
@@ -31,7 +32,7 @@ while True:
     pantalla.fill((0,0,0))  # limpiar pantalla
 
     mapa_pg.dibujar()  # dibujar mapa y textos
-    bici.mover()       # mover y dibujar bicicleta
+    repartidor.mover()       # mover y dibujar bicicleta
 
     pygame.display.flip()
     reloj.tick(60)

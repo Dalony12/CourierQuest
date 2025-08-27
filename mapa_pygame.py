@@ -17,10 +17,10 @@ class MapaPygame:
         for k, v in mapa.legend.items():
             if v.get("blocked"):
                 self.colores[k] = (100, 100, 100)  # gris oscuro
-            elif v.get("surface_weight"):
-                self.colores[k] = (200, 200, 200)  # gris claro
+            elif v.get("name") == "park":
+                self.colores[k] = (0, 255, 0)      # verde
             else:
-                self.colores[k] = (0, 255, 0)      # verde por defecto
+                self.colores[k] = (200, 200, 200)  # gris claro
 
         # fuente para textos
         self.fuente = pygame.font.SysFont("Arial", 20)
