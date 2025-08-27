@@ -6,9 +6,9 @@ import pygame
 import APIcontroller
 from pygame.locals import *
 
-mapa = Mapa()
-mapa.cargar(APIcontroller.CollectInformacionMapa())
-
+data = APIcontroller.CollectInformacionMapa()
+mapa = Mapa(data)
+print(map)
 
 
 # Configuración de pantalla

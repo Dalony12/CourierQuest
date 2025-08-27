@@ -1,59 +1,45 @@
 import requests
 
+def get_data_from_api(url: str):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"Error al obtener datos ({response.status_code}): {url}")
+            return None
+    except Exception as e:
+        print(f"Excepción al llamar {url}: {e}")
+        return None
 
 
 def CollectInformacionMapa():
     #Collect de los datos del mapa
     mapaUrl = "https://tigerds-api.kindflower-ccaf48b6.eastus.azurecontainerapps.io/city/map"
 
-    response = requests.get(mapaUrl)
+    data = get_data_from_api(mapaUrl)
 
-    if response.status_code == 200:
-        data = response.json()
-        data = data["data"]
-        nombreCiudad = data["city_name"]
-        ancho = data["width"]
-        largo = data["height"]
-        meta = data["goal"]
-        tiempoMaximo = data["max_time"]
-        celdas = data["tiles"]
-        descripcionCeldas = data["legend"] 
-        return data
-    else: print("Error al obtener el mapa:", response.status_code)
+    if data:
+        return data.get("data", {})   # devuelve todo lo del mapa
+    return None
+
 
 def CollectInformacionPedidos():
     #Collect de los datos de los pedidos
     pedidosUrl = "https://tigerds-api.kindflower-ccaf48b6.eastus.azurecontainerapps.io/city/jobs"
-    response = requests.get(pedidosUrl)
 
-    if response.status_code == 200:
-        data = response.json()
-        data = data["data"]
-        nombreCiudad = data["city_name"]
-        ancho = data["width"]
-        largo = data["height"]
-        meta = data["goal"]
-        tiempoMaximo = data["max_time"]
-        celdas = data["tiles"]
-        descripcionCeldas = data["legend"] 
-    else: print("Error al obtener el mapa:", response.status_code)
+    data = get_data_from_api(mapaUrl)
 
-    #Collect de los datos de los pedidos
-    pedidosUrl = "https://tigerds-api.kindflower-ccaf48b6.eastus.azurecontainerapps.io/city/jobs"
+    if data:
+        return data.get("data", {})   # devuelve todo lo del mapa
+    return None
 
-    response = requests.get(pedidosUrl)
-
-    if response.status_code == 200:
-        #Agregar las variables de los pedidos
-        print()
-    else: print("Error al obtener el mapa:", response.status_code)
-
+def CollectInformacionClima():
     #Collect de los datos del clima
     climaUrl = "https://tigerds-api.kindflower-ccaf48b6.eastus.azurecontainerapps.io/city/weather?city=TigerCity&mode=mode"
+    
+    data = get_data_from_api(mapaUrl)
 
-    data = requests.get(climaUrl)
-
-    if data.status_code == 200:
-        #Agregar las variables del clima
-        print()
-    else: print("Error al obtener el mapa:", response.status_code)
+    if data:
+        return data.get("data", {})   # devuelve todo lo del mapa
+    return None
