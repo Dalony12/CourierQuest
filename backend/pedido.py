@@ -1,4 +1,4 @@
-class Pedido:
+class Pedido:   
     def __init__(self: str):
         self.id = None
         self.pickup = []
