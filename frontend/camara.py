@@ -15,11 +15,19 @@ class Camara:
         self.offset_x = target_rect.centerx - self.ancho_pantalla / (2 * self.zoom)
         self.offset_y = target_rect.centery - self.alto_pantalla / (2 * self.zoom)
 
-        # Limitar para no mostrar fuera del mapa
+        # Limitar para no mostrar fuera del mapa (cálculo original)
         max_x = self.mapa_width - self.ancho_pantalla / self.zoom
         max_y = self.mapa_height - self.alto_pantalla / self.zoom
-        self.offset_x = max(0, min(self.offset_x, max_x))
-        self.offset_y = max(0, min(self.offset_y, max_y))
+
+        if self.offset_x < 0:
+            self.offset_x = 0
+        elif self.offset_x > max_x:
+            self.offset_x = max_x
+
+        if self.offset_y < 0:
+            self.offset_y = 0
+        elif self.offset_y > max_y:
+            self.offset_y = max_y
 
     def apply_surface(self, surf, rect):
         # Escalar superficie y devolver rect ajustado
