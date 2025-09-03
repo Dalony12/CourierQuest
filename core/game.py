@@ -24,6 +24,7 @@ class Game:
             "assets/sprites/repartidor/repartidorDerecha.png",
             escala=(TILE_SIZE, TILE_SIZE)
         )
+        self.repartidor.set_mapa(self.mapa)
         self.repartidor.rect.center = (self.mapa.width * TILE_SIZE // 2, self.mapa.height * TILE_SIZE // 2)
 
         # Crear HUD
