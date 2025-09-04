@@ -75,7 +75,6 @@ class Repartidor:
             "rain": 0.1, "wind": 0.1, "storm": 0.3, "heat": 0.2
         }.get(self.clima_actual, 0)
         self.resistencia -= base + extra_peso + clima_penal
-        print(f"⚡ Energía consumida. Resistencia actual: {self.resistencia}")
 
 
     def velocidad_actual(self):
@@ -112,13 +111,13 @@ class Repartidor:
 
         if dx == 0 and dy == 0:
             self.descansar()
-            print(f"😌 Descansando... Resistencia actual: {self.resistencia}")
-            return  # no hay movimiento, solo descanso
-
+            return 
+        print(f"🧪 Recuperando: +{rec} → Resistencia: {self.resistencia}")
+        
         nueva_x = self.pos_x + dx
         nueva_y = self.pos_y + dy
 
-        if self.estado != "Exhausto" and self.puede_moverse_a(nueva_x, nueva_y):
+        if self.estado != "Cansado" and self.puede_moverse_a(nueva_x, nueva_y):
             self.pos_x = nueva_x
             self.pos_y = nueva_y
             self.rect.center = (self.pos_x * self.rect.width, self.pos_y * self.rect.height)
