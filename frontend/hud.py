@@ -1,11 +1,12 @@
 import pygame
-
+import time 
 import os
 
 
 class HUD:
     def __init__(self, screen, max_energy=100):
         self.screen = screen
+        self.tiempo_inicio = time.time()
         self.max_energy = max_energy
         self.energy = max_energy
         self.score = 0
@@ -43,6 +44,9 @@ class HUD:
     def add_score(self, points):
         self.score += points
 
+    def tiempo_transcurrido(self):
+        return int(time.time() - self.tiempo_inicio)
+
     def draw_bar(self, x, y, current, maximum, color, width=200, height=20, surface=None):
         """Dibuja una barra de progreso (vida/energía) en el surface dado o en self.screen."""
         if surface is None:
@@ -69,3 +73,10 @@ class HUD:
                     if key == 'hud':
                         sprite = pygame.transform.scale(sprite, surface.get_size())
                     surface.blit(sprite, pos)
+
+    def mostrar_texto(self, texto, x=20, y=20, color=(255, 255, 255), surface=None):
+        if surface is None:
+            surface = self.screen
+        render = self.font.render(texto, True, color)
+        surface.blit(render, (x, y))
+

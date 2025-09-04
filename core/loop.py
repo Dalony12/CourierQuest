@@ -60,15 +60,16 @@ def game_loop(pantalla, game):
                 pantalla.blit(btn_aceptar, (30, 700))  # posición en pantalla
 
                 # Texto informativo
-                font = pygame.font.SysFont("Arial", 20)
-                texto = font.render(f"Pedido disponible: {pedido.id} → {pedido.dropoff}", True, (255, 255, 255))
-                pantalla.blit(texto, (150, 710))
+                game.hud.mostrar_texto(f"Pedido disponible: {pedido.id} → {pedido.dropoff}", x=150, y=710)
 
         # Mostrar pedidos en inventario
         for pedido in game.repartidor.inventario.obtener_items():
-            font = pygame.font.SysFont("Arial", 18)
-            texto = font.render(f"📦 {pedido.id} → {pedido.dropoff} | peso: {pedido.weight}", True, (200, 200, 0))
-            pantalla.blit(texto, (30, 660 - 30 * game.repartidor.inventario.obtener_items().index(pedido)))
+            game.hud.mostrar_texto(
+                f"📦 {pedido.id} → {pedido.dropoff} | peso: {pedido.weight}",
+                x=30,
+                y=660 - 30 * game.repartidor.inventario.obtener_items().index(pedido),
+                color=(200, 200, 0)
+                )
 
         # Mostrar ícono de GPS si hay pedidos activos
         if game.repartidor.inventario.obtener_items():
