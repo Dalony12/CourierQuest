@@ -112,8 +112,7 @@ class Repartidor:
         if dx == 0 and dy == 0:
             self.descansar()
             return 
-        print(f"🧪 Recuperando: +{rec} → Resistencia: {self.resistencia}")
-        
+
         nueva_x = self.pos_x + dx
         nueva_y = self.pos_y + dy
 
@@ -167,6 +166,7 @@ class Repartidor:
     def descansar(self):
         rec = 0.1
         self.resistencia = min(100, self.resistencia + rec)
+        print(f"🧪 Recuperando: +{rec} → Resistencia: {self.resistencia}")
         self._actualizar_estado()
 
     def dibujar(self, pantalla):
