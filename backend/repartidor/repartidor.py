@@ -165,8 +165,13 @@ class Repartidor:
         elif self.reputacion < 20:
             print("¡Derrota! Reputación demasiado baja.")
 
-    def descansar(self, puntos_descanso=False):
-        rec = 10 if puntos_descanso else 5
+    def descansar(self):
+        if self.estado == "Exhausto":
+            rec = 1
+        elif self.estado == "Cansado":
+            rec = 2
+        else:
+            rec = 0 
         self.resistencia = min(100, self.resistencia + rec)
         self._actualizar_estado()
 
