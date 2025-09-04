@@ -94,7 +94,7 @@ class Repartidor:
 
     def mover(self, limites):
         teclas = pygame.key.get_pressed()
-        dx, dy = 0, 0
+        dx, dy = self.rect, self.rect
 
         if teclas[pygame.K_UP] or teclas[pygame.K_w]:
             dy = -1
@@ -118,10 +118,7 @@ class Repartidor:
 
         if self.estado == "Exhausto":
             if self.resistencia < 30:
-                print("🚫 Estás exhausto. Necesitás al menos 30 de energía para moverte.")
                 return
-            else:
-                print("✅ Energía suficiente para salir del estado 'Exhausto'")
 
         # ✅ Movimiento permitido si la celda no está bloqueada
         if self.puede_moverse_a(nueva_x, nueva_y):
