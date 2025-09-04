@@ -94,7 +94,7 @@ class Repartidor:
 
     def mover(self, limites):
         teclas = pygame.key.get_pressed()
-        dx, dy = self.rect, self.rect
+        dx, dy = 0, 0
 
         if teclas[pygame.K_UP] or teclas[pygame.K_w]:
             dy = -1
