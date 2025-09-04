@@ -50,5 +50,5 @@ class Game:
 
         # Print para validar
         print("📦 Pedidos cargados:")
-        for pedido in self.gestor_pedidos.obtener_todos():
+        for pedido in self.gestor_pedidos.obtener_activos():
             print(pedido)
