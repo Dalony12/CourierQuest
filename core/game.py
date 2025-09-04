@@ -36,8 +36,6 @@ class Game:
 
         # Obtener datos de pedidos
         pedidos_data = APIcontroller.CollectInformacionPedidos()
-        print(f"Pedidos recibidos desde API: {len(pedidos_data)}")
-        print(pedidos_data[:2])
         if not pedidos_data:
             raise Exception("Error: no se pudo cargar los pedidos desde la API")
 
@@ -49,9 +47,4 @@ class Game:
             pedido = Pedido()
             pedido._cargar(pedido_raw)
             self.gestor_pedidos.agregar_pedido(pedido)
-
-        # Print para validar
-        print("📦 Pedidos cargados:")
-        for resumen in self.gestor_pedidos.mostrar_resumen():
-            print(resumen)
 
