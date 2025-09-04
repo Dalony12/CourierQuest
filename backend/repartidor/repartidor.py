@@ -18,8 +18,8 @@ class Inventario:
     
     
 class Repartidor:
-    def __init__(self, imagen_arriba, imagen_abajo, imagen_izq, imagen_der, escala=(50, 50), velocidad=5):
-        self.nombre = "Peñita"
+    def __init__(self, imagen_arriba, imagen_abajo, imagen_izq, imagen_der, escala=(50, 50), velocidad=1):
+        self.nombre = "Lopez"
         self.pos_x = 0
         self.pos_y = 0
         self.meta_ingresos = 100
@@ -30,7 +30,6 @@ class Repartidor:
         self.clima_actual = "clear"
         self.intensidad_clima = 1.0
         self.v0 = velocidad
-
         self.inventario = Inventario()
         self.pesoMaximo = 5
 
@@ -45,6 +44,8 @@ class Repartidor:
         self.imagen_mostrar = self.sprites[self.direccion]
 
         self.mapa = None  # Se puede asignar luego con set_mapa()
+        self.camara = None  # Se puede asignar luego desde Game
+
 
     def set_mapa(self, mapa):
         self.mapa = mapa
@@ -74,6 +75,8 @@ class Repartidor:
             "rain": 0.1, "wind": 0.1, "storm": 0.3, "heat": 0.2
         }.get(self.clima_actual, 0)
         self.resistencia -= base + extra_peso + clima_penal
+        print(f"⚡ Energía consumida. Resistencia actual: {self.resistencia}")
+
 
     def velocidad_actual(self):
         Mpeso = max(0.8, 1 - 0.03 * self.inventario.peso_total())
@@ -107,6 +110,11 @@ class Repartidor:
             dx = 1
             self.direccion = "der"
 
+        if dx == 0 and dy == 0:
+            self.descansar()
+            print(f"😌 Descansando... Resistencia actual: {self.resistencia}")
+            return  # no hay movimiento, solo descanso
+
         nueva_x = self.pos_x + dx
         nueva_y = self.pos_y + dy
 
@@ -119,7 +127,7 @@ class Repartidor:
 
         # Limitar el movimiento al área visible considerando el zoom de la cámara
         ancho, alto = limites
-        zoom = getattr(self.camara, "zoom", 1)
+        zoom = getattr(self.camara, "zoom", 1) if self.camara else 1
         area_visible_w = int(ancho / zoom)
         area_visible_h = int(alto / zoom)
         half_w = self.rect.width // 2
