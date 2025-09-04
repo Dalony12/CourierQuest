@@ -2,8 +2,8 @@ import pygame
 from backend.mapa import Mapa
 from backend.repartidor.repartidor import Repartidor
 from backend.pedido import Pedido
-from backend.GestorPedidos import GestorPedidos
 from frontend.camara import Camara
+from backend.gestor_pedidos import GestorPedidos
 from frontend.hud import HUD
 from backend import APIcontroller
 from core.config import TILE_SIZE, ZOOM, ANCHO, ALTO
