@@ -116,7 +116,6 @@ class Repartidor:
         nueva_x = self.pos_x + dx
         nueva_y = self.pos_y + dy
 
-            # 🚫 Si está exhausto, no se mueve hasta que tenga al menos 30 de resistencia
         if self.estado == "Exhausto":
             if self.resistencia < 30:
                 print("🚫 Estás exhausto. Necesitás al menos 30 de energía para moverte.")
@@ -124,13 +123,14 @@ class Repartidor:
             else:
                 print("✅ Energía suficiente para salir del estado 'Exhausto'")
 
-    # ✅ Movimiento permitido si la celda no está bloqueada
-    if self.puede_moverse_a(nueva_x, nueva_y):
-        self.pos_x = nueva_x
-        self.pos_y = nueva_y
-        self.rect.center = (self.pos_x * self.rect.width, self.pos_y * self.rect.height)
-        self._consumir_energia()
-        self._actualizar_estado()
+        # ✅ Movimiento permitido si la celda no está bloqueada
+        if self.puede_moverse_a(nueva_x, nueva_y):
+            self.pos_x = nueva_x
+            self.pos_y = nueva_y
+            self.rect.center = (self.pos_x * self.rect.width, self.pos_y * self.rect.height)
+            self._consumir_energia()
+            self._actualizar_estado()
+
 
 
         # Limitar el movimiento al área visible considerando el zoom de la cámara
