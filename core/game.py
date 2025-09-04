@@ -47,3 +47,8 @@ class Game:
             pedido = Pedido()
             pedido._cargar(pedido_raw)
             self.gestor_pedidos.agregar_pedido(pedido)
+
+        # Print para validar
+        print("📦 Pedidos cargados:")
+        for pedido in self.gestor_pedidos.obtener_todos():
+            print(pedido)

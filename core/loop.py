@@ -16,6 +16,7 @@ def game_loop(pantalla, game):
 
         # Actualizar lógica
         game.repartidor.mover((game.mapa.width * TILE_SIZE, game.mapa.height * TILE_SIZE))
+        game.camara.update(game.repartidor.rect)
         # Actualizar lógica de pedidos
         tiempo_actual = game.hud.tiempo_transcurrido()
 
