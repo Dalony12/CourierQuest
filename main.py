@@ -47,24 +47,6 @@ def main():
                 offset_x = 0
                 offset_y = 0
             game.repartidor.mover((limite_x, limite_y))
-            # --- Actualizar lógica de pedidos ---
-        tiempo_actual = game.hud.tiempo_transcurrido()
-
-        # Recoger pedidos disponibles
-        for pedido in game.gestor_pedidos.obtener_disponibles(tiempo_actual):
-            if not pedido.recogido and (game.repartidor.pos_x, game.repartidor.pos_y) == tuple(pedido.pickup):
-                if game.repartidor.recoger_paquete(pedido):
-                    pedido.recogido = True
-                    print(f"📥 Pedido {pedido.id} recogido en {pedido.pickup}")
-
-        # Entregar pedidos activos
-        for pedido in game.repartidor.inventario.obtener_items():
-            if not pedido.entregado and (game.repartidor.pos_x, game.repartidor.pos_y) == tuple(pedido.dropoff):
-                from datetime import datetime
-                pedido.retraso = max(0, int((datetime.now() - pedido.deadline).total_seconds() / 60))
-                game.repartidor.entregar_paquete(pedido)
-                pedido.entregado = True
-                print(f"📤 Pedido {pedido.id} entregado en {pedido.dropoff}")
             game.camara.update(game.repartidor.rect)
             game.hud.update_energy(-0.05)
             game.hud.add_score(1)

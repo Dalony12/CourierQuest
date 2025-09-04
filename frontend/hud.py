@@ -74,9 +74,4 @@ class HUD:
                         sprite = pygame.transform.scale(sprite, surface.get_size())
                     surface.blit(sprite, pos)
 
-    def mostrar_texto(self, texto, x=20, y=20, color=(255, 255, 255), surface=None):
-        if surface is None:
-            surface = self.screen
-        render = self.font.render(texto, True, color)
-        surface.blit(render, (x, y))
 
