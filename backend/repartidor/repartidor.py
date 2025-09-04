@@ -20,8 +20,8 @@ class Inventario:
 class Repartidor:
     def __init__(self, imagen_arriba, imagen_abajo, imagen_izq, imagen_der, escala=(50, 50), velocidad=1):
         self.nombre = "Lopez"
-        self.pos_x = 0
-        self.pos_y = 0
+        self.pos_x = mapa.width // 2
+        self.pos_y = mapa.height // 2
         self.meta_ingresos = 100
         self.resistencia = 100
         self.reputacion = 70
