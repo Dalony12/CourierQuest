@@ -166,7 +166,7 @@ class Repartidor:
             print("¡Derrota! Reputación demasiado baja.")
 
     def descansar(self):
-        rec = 1
+        rec = 0.1
         self.resistencia = min(100, self.resistencia + rec)
         self._actualizar_estado()
 
