@@ -17,6 +17,18 @@ def game_loop(pantalla, game):
         # Actualizar lógica
         game.repartidor.mover((game.mapa.width * TILE_SIZE, game.mapa.height * TILE_SIZE))
         game.camara.update(game.repartidor.rect)
+
+        # Actualizar clima dinámico
+        game.clima.actualizar_clima()
+
+        # Actualizar estado climático del repartidor
+        estado = game.clima.get_estado_climatico()
+        game.repartidor.aplicar_clima(estado["condicion"], estado["intensidad"])
+
+        # Aplicar efecto climático al repartidor
+        multiplicador = game.clima.get_multiplicador()
+        game.repartidor.aplicar_multiplicador_velocidad(multiplicador)
+
         # Actualizar lógica de pedidos
         tiempo_actual = game.hud.tiempo_transcurrido()
 

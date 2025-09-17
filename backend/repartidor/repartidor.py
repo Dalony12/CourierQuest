@@ -178,5 +178,9 @@ class Repartidor:
     def dibujar(self, pantalla):
         pantalla.blit(self.imagen_mostrar, self.rect)
 
+    def aplicar_clima(self, condicion, intensidad):
+        self.clima_actual = condicion
+        self.intensidad_clima = intensidad
+
     def __str__(self):
         return f"🚴 {self.nombre} ({self.pos_x},{self.pos_y}) | Resistencia: {self.resistencia:.1f} | Reputación: {self.reputacion} | Ingresos: ₡{self.ingresos:.2f}"

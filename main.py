@@ -48,6 +48,17 @@ def main():
                 offset_y = 0
             game.repartidor.mover((limite_x, limite_y))
             game.camara.update(game.repartidor.rect)
+            # Actualizar clima dinámico
+            game.clima.actualizar_clima()
+
+            # Actualizar estado climático del repartidor
+            estado = game.clima.get_estado_climatico()
+            game.repartidor.aplicar_clima(estado["condicion"], estado["intensidad"])
+
+            # Aplicar efecto climático al repartidor
+            multiplicador = game.clima.get_multiplicador()
+            game.repartidor.aplicar_multiplicador_velocidad(multiplicador)
+
             game.hud.update_energy(-0.05)
             game.hud.add_score(1)
             # --- Dibujo de panel HUD (fondo)

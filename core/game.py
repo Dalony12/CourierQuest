@@ -3,6 +3,7 @@ from backend.mapa import Mapa
 from backend.repartidor.repartidor import Repartidor
 from backend.pedido import Pedido
 from frontend.camara import Camara
+from backend.clima import Clima
 from backend.gestor_pedidos import GestorPedidos
 from frontend.hud import HUD
 from backend import APIcontroller
@@ -47,4 +48,17 @@ class Game:
             pedido = Pedido()
             pedido._cargar(pedido_raw)
             self.gestor_pedidos.agregar_pedido(pedido)
+
+        # Obtener datos del clima
+        clima_data = APIcontroller.CollectInformacionClima()
+        if not clima_data:
+            raise Exception("Error: no se pudo cargar el clima desde la API")
+
+        # Crear instancia de Clima
+        self.clima = Clima(url=None)  # Si no usás la URL directamente, podés dejarla como None
+        self.clima._cargar(clima_data)
+        print(f"[✔] Clima cargado para ciudad: {self.clima.city_name}")
+        for i, burst in enumerate(self.clima.bursts):
+            print(f"  Burst {i+1}: condición={burst['condition']}, intensidad={burst['intensity']}, duración={burst['duration']}s")
+
 
