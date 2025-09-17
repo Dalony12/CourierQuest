@@ -22,7 +22,7 @@ class Clima:
 
     def _cargar(self, data):
         try:
-            clima_data = data.get("data", {})
+            clima_data = data if "city" in data else data.get("data", {})
             self.city_name = clima_data.get("city", "Desconocida")
             self.estados = clima_data.get("conditions", [])
             self.matriz_markov = self._convertir_transiciones(clima_data.get("transition", {}))
