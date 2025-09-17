@@ -184,7 +184,7 @@ class Repartidor:
 
     def aplicar_multiplicador_velocidad(self, m):
         self.v0 = m
-        print(f"[🌦️] Velocidad base ajustada por clima: {round(m, 2)}")
+        #print(f"[🌦️] Velocidad base ajustada por clima: {round(m, 2)}")
 
 
     def __str__(self):
