@@ -117,12 +117,12 @@ class Repartidor:
         if self.estado == "Exhausto" and self.resistencia < 30:
             return
 
-        # ✅ Movimiento fluido en píxeles
+        # Movimiento fluido en píxeles
         velocidad = self.velocidad_actual()
         desplazamiento_x = dx * velocidad * self.rect.width
         desplazamiento_y = dy * velocidad * self.rect.height
 
-        # 🧠 Validar celda destino antes de mover
+        # Validar celda destino antes de mover
         celda_destino_x = (self.rect.centerx + desplazamiento_x) // self.rect.width
         celda_destino_y = (self.rect.centery + desplazamiento_y) // self.rect.height
 
