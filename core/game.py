@@ -61,18 +61,16 @@ class Game:
             self.gestor_pedidos.agregar_pedido(pedido)
 
     def _cargar_rutas_sprites_repartidor(self):
-        """Construye rutas absolutas para los sprites del repartidor."""
-        base_dir = os.path.dirname(__file__)
-        sprites_dir = os.path.join(base_dir, "..", "..", "assets", "sprites", "repartidor")
+        sprites_dir = r"C:\Universidad\Estructura de Datos\I Proyecto de Estructuras de Datos\CourierQuest\assets\sprites\repartidor"
 
         rutas = {
-            "arriba": os.path.abspath(os.path.join(sprites_dir, "repartidorArriba.png")),
-            "abajo": os.path.abspath(os.path.join(sprites_dir, "repartidorAbajo.png")),
-            "izquierda": os.path.abspath(os.path.join(sprites_dir, "repartidorIzquierda.png")),
-            "derecha": os.path.abspath(os.path.join(sprites_dir, "repartidorDerecha.png")),
+            "arriba": os.path.join(sprites_dir, "repartidorArriba.png"),
+            "abajo": os.path.join(sprites_dir, "repartidorAbajo.png"),
+            "izquierda": os.path.join(sprites_dir, "repartidorIzquierda.png"),
+            "derecha": os.path.join(sprites_dir, "repartidorDerecha.png"),
         }
 
-        # Validación opcional: asegurarse de que los archivos existen
+        # Validación opcional
         for direccion, ruta in rutas.items():
             if not os.path.exists(ruta):
                 raise FileNotFoundError(f"Sprite '{direccion}' no encontrado en: {ruta}")
