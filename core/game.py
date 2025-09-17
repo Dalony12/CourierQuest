@@ -7,7 +7,6 @@ from backend.gestor_pedidos import GestorPedidos
 from frontend.hud import HUD
 from backend import APIcontroller
 from core.config import TILE_SIZE, ZOOM, ANCHO, ALTO
-import os
 
 class Game:
     def __init__(self, pantalla, ancho_juego, alto_juego):
@@ -17,31 +16,20 @@ class Game:
             raise Exception("Error: no se pudo cargar el mapa desde la API")
 
         self.mapa = Mapa(mapa_data)
-        self.camara = Camara(
-            ancho_juego,
-            alto_juego,
-            self.mapa.width * TILE_SIZE,
-            self.mapa.height * TILE_SIZE,
-            zoom=ZOOM
-        )
+        self.camara = Camara(ancho_juego, alto_juego, self.mapa.width * TILE_SIZE, self.mapa.height * TILE_SIZE, zoom=ZOOM)
 
-        # Cargar rutas absolutas de los sprites del repartidor
-        imagenes_repartidor = self._cargar_rutas_sprites_repartidor()
-
-        # Crear repartidor con rutas absolutas
+        # Crear repartidor
         self.repartidor = Repartidor(
-            imagenes_repartidor["arriba"],
-            imagenes_repartidor["abajo"],
-            imagenes_repartidor["izquierda"],
-            imagenes_repartidor["derecha"],
+            "assets/sprites/repartidor/repartidorArriba.png",
+            "assets/sprites/repartidor/repartidorAbajo.png",
+            "assets/sprites/repartidor/repartidorIzquierda.png",
+            "assets/sprites/repartidor/repartidorDerecha.png",
             escala=(TILE_SIZE, TILE_SIZE)
         )
         self.repartidor.set_mapa(self.mapa)
         self.repartidor.camara = self.camara
-        self.repartidor.rect.center = (
-            self.mapa.width * TILE_SIZE // 2,
-            self.mapa.height * TILE_SIZE // 2
-        )
+
+        self.repartidor.rect.center = (self.mapa.width * TILE_SIZE // 2, self.mapa.height * TILE_SIZE // 2)
 
         # Crear HUD
         self.hud = HUD(pantalla, max_energy=100)
@@ -60,19 +48,3 @@ class Game:
             pedido._cargar(pedido_raw)
             self.gestor_pedidos.agregar_pedido(pedido)
 
-    def _cargar_rutas_sprites_repartidor(self):
-        sprites_dir = r"C:\Universidad\Estructura de Datos\I Proyecto de Estructuras de Datos\CourierQuest\assets\sprites\repartidor"
-
-        rutas = {
-            "arriba": os.path.join(sprites_dir, "repartidorArriba.png"),
-            "abajo": os.path.join(sprites_dir, "repartidorAbajo.png"),
-            "izquierda": os.path.join(sprites_dir, "repartidorIzquierda.png"),
-            "derecha": os.path.join(sprites_dir, "repartidorDerecha.png"),
-        }
-
-        # Validación opcional
-        for direccion, ruta in rutas.items():
-            if not os.path.exists(ruta):
-                raise FileNotFoundError(f"Sprite '{direccion}' no encontrado en: {ruta}")
-
-        return rutas
