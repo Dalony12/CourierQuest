@@ -81,16 +81,15 @@ class Repartidor:
         Mpeso = max(0.8, 1 - 0.03 * self.inventario.peso_total())
         Mrep = 1.03 if self.reputacion >= 90 else 1.0
         Mres = 1.0 if self.estado == "Normal" else 0.8 if self.estado == "Cansado" else 0.0
-        Mclima = {
-            "clear": 1.00, "clouds": 0.98, "rain_light": 0.90,
-            "rain": 0.85, "storm": 0.75, "fog": 0.88,
-            "wind": 0.92, "heat": 0.90, "cold": 0.92
-        }.get(self.clima_actual, 1.0) * self.intensidad_clima
 
         tipo = self.mapa.celdas[self.pos_x][self.pos_y].tipo if self.mapa else "N"
         surface_weight = self.mapa.legend.get(tipo, {}).get("surface_weight", 1.0)
 
-        return self.v0 * Mclima * Mpeso * Mrep * Mres * surface_weight
+        velocidad = self.v0 * Mpeso * Mrep * Mres * surface_weight
+
+        print(f"[🚀] Velocidad actual: {round(velocidad, 2)} | Multiplicador climático base: {self.v0}")
+        return round(velocidad, 2)
+
 
     def mover(self, limites):
         teclas = pygame.key.get_pressed()
@@ -181,10 +180,12 @@ class Repartidor:
     def aplicar_clima(self, condicion, intensidad):
         self.clima_actual = condicion
         self.intensidad_clima = intensidad
+        print(f"[🌡️] Clima aplicado al repartidor: {condicion} | Intensidad: {intensidad}")
+
 
     def aplicar_multiplicador_velocidad(self, m):
         self.v0 = m
-        #print(f"[🌦️] Velocidad base ajustada por clima: {round(m, 2)}")
+        print(f"[🌦️] Velocidad base ajustada por clima: {round(m, 2)}")
 
 
     def __str__(self):
