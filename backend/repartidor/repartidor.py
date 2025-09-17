@@ -86,9 +86,8 @@ class Repartidor:
         surface_weight = self.mapa.legend.get(tipo, {}).get("surface_weight", 1.0)
 
         velocidad = self.v0 * Mpeso * Mrep * Mres * surface_weight
-        if getattr(self, "_velocidad_prev", None) != round(velocidad, 2):
-            print(f"[🚀] Velocidad actual: {round(velocidad, 2)} | Multiplicador climático base: {self.v0}")
-            self._velocidad_prev = round(velocidad, 2)
+        
+        self._velocidad_prev = round(velocidad, 2)
        
 
         return round(velocidad, 2)
@@ -118,18 +117,16 @@ class Repartidor:
         nueva_x = self.pos_x + dx
         nueva_y = self.pos_y + dy
 
-        if self.estado == "Exhausto":
-            if self.resistencia < 30:
-                return
+        if self.estado != "Exhausto" or self.resistencia >= 30:
+            velocidad = self.velocidad_actual()
+            desplazamiento_x = dx * velocidad * self.rect.width
+            desplazamiento_y = dy * velocidad * self.rect.height
 
-        # ✅ Movimiento permitido si la celda no está bloqueada
-        if self.puede_moverse_a(nueva_x, nueva_y):
-            self.pos_x = nueva_x
-            self.pos_y = nueva_y
-            self.rect.center = (self.pos_x * self.rect.width, self.pos_y * self.rect.height)
+            self.rect.centerx += desplazamiento_x
+            self.rect.centery += desplazamiento_y
+
             self._consumir_energia()
             self._actualizar_estado()
-            self.velocidad_actual()
 
         # Limitar el movimiento al área visible considerando el zoom de la cámara
         ancho, alto = limites
@@ -180,18 +177,14 @@ class Repartidor:
         pantalla.blit(self.imagen_mostrar, self.rect)
 
     def aplicar_clima(self, condicion, intensidad):
-        if getattr(self, "_clima_prev", None) != (condicion, intensidad):
-            print(f"[🌡️] Clima aplicado al repartidor: {condicion} | Intensidad: {intensidad}")
-            self._clima_prev = (condicion, intensidad)
+        self._clima_prev = (condicion, intensidad)
         self.clima_actual = condicion
         self.intensidad_clima = intensidad
 
 
 
     def aplicar_multiplicador_velocidad(self, m):
-        if getattr(self, "_v0_prev", None) != m:
-            print(f"[⚡] Velocidad base ajustada por clima: {round(m, 2)}")
-            self._v0_prev = m
+        self._v0_prev = m
         self.v0 = m
 
 
