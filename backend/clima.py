@@ -8,24 +8,7 @@ class Clima:
         "wind": 0.92, "heat": 0.90, "cold": 0.92
     }
 
-    ESTADOS = [
-        "clear", "clouds", "rain_light", "rain", "storm",
-        "fog", "wind", "heat", "cold"
-    ]
-
-    MATRIZ_MARKOV = {
-        "clear":      [0.2, 0.2, 0.1, 0.1, 0.05, 0.1, 0.1, 0.05, 0.1],
-        "clouds":     [0.1, 0.3, 0.1, 0.1, 0.05, 0.1, 0.1, 0.05, 0.1],
-        "rain_light": [0.05, 0.1, 0.3, 0.2, 0.1, 0.05, 0.05, 0.05, 0.1],
-        "rain":       [0.05, 0.1, 0.2, 0.3, 0.2, 0.05, 0.05, 0.05, 0.1],
-        "storm":      [0.05, 0.05, 0.1, 0.2, 0.3, 0.1, 0.05, 0.05, 0.05],
-        "fog":        [0.1, 0.2, 0.1, 0.1, 0.05, 0.3, 0.05, 0.05, 0.05],
-        "wind":       [0.1, 0.1, 0.05, 0.05, 0.05, 0.05, 0.4, 0.1, 0.1],
-        "heat":       [0.1, 0.1, 0.05, 0.05, 0.05, 0.05, 0.1, 0.4, 0.05],
-        "cold":       [0.1, 0.1, 0.05, 0.05, 0.05, 0.05, 0.1, 0.05, 0.4]
-    }
-
-    def __init__(self, url):
+    def __init__(self, url=None):
         self.url = url
         self.city_name = None
         self.bursts = []
@@ -34,30 +17,39 @@ class Clima:
         self.multiplicador_actual = 1.0
         self.tiempo_inicio = time.time()
         self.duracion_actual = 60
-        self.matriz_markov = self.MATRIZ_MARKOV
-        self.estados = self.ESTADOS
+        self.matriz_markov = {}
+        self.estados = []
 
     def _cargar(self, data):
         try:
-            self.city_name = data.get("city")
-            bursts_data = data.get("bursts", [])
-            self.bursts = []
+            clima_data = data.get("data", {})
+            self.city_name = clima_data.get("city", "Desconocida")
+            self.estados = clima_data.get("conditions", [])
+            self.matriz_markov = self._convertir_transiciones(clima_data.get("transition", {}))
 
-            for burst in bursts_data:
-                duracion = burst.get("duration_sec", random.randint(45, 60))
-                condicion = burst.get("condition", "clear")
-                intensidad = burst.get("intensity", 0.0)
-                self.bursts.append({
-                    "condition": condicion,
-                    "intensity": intensidad,
-                    "duration": duracion
-                })
+            # Cargar ráfaga inicial
+            inicial = clima_data.get("initial", {})
+            self.bursts = [{
+                "condition": inicial.get("condition", "clear"),
+                "intensity": inicial.get("intensity", 0.0),
+                "duration": random.randint(45, 60)
+            }]
+            self._iniciar_burst(self.bursts[0])
 
-            if self.bursts:
-                self._iniciar_burst(self.bursts[0])
+            print(f"[✔] Clima cargado para ciudad: {self.city_name}")
+            for i, burst in enumerate(self.bursts):
+                print(f"  Burst {i+1}: condición={burst['condition']}, intensidad={burst['intensity']}, duración={burst['duration']}s")
 
         except Exception as e:
-            print(f"Error al cargar clima de {self.city_name}: {e}")
+            print(f"[❌] Error al cargar clima: {e}")
+
+    def _convertir_transiciones(self, transiciones_raw):
+        matriz = {}
+        for estado, transiciones in transiciones_raw.items():
+            destinos = list(transiciones.keys())
+            pesos = list(transiciones.values())
+            matriz[estado] = (destinos, pesos)
+        return matriz
 
     def _iniciar_burst(self, burst):
         self.clima_actual = burst["condition"]
@@ -75,12 +67,23 @@ class Clima:
             self._transicion_suave(burst)
 
     def _siguiente_estado_markov(self, actual):
-        probabilidades = self.matriz_markov.get(actual, [1.0 / len(self.estados)] * len(self.estados))
-        return random.choices(self.estados, weights=probabilidades)[0]
+        destinos, pesos = self.matriz_markov.get(actual, (self.estados, [1.0 / len(self.estados)] * len(self.estados)))
+        return random.choices(destinos, weights=pesos)[0]
 
     def _buscar_burst_por_estado(self, estado):
         candidatos = [b for b in self.bursts if b["condition"] == estado]
-        return random.choice(candidatos) if candidatos else random.choice(self.bursts)
+        if not candidatos:
+            # Si no hay ráfagas para ese estado, crear una nueva
+            intensidad = round(random.uniform(0.0, 1.0), 2)
+            duracion = random.randint(45, 60)
+            nuevo_burst = {
+                "condition": estado,
+                "intensity": intensidad,
+                "duration": duracion
+            }
+            self.bursts.append(nuevo_burst)
+            return nuevo_burst
+        return random.choice(candidatos)
 
     def _transicion_suave(self, nuevo_burst):
         m_inicial = self.multiplicador_actual
