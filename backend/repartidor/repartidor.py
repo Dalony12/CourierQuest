@@ -177,15 +177,20 @@ class Repartidor:
         pantalla.blit(self.imagen_mostrar, self.rect)
 
     def aplicar_clima(self, condicion, intensidad):
+        if getattr(self, "_clima_prev", None) != (condicion, intensidad):
+            print(f"[🌡️] Clima aplicado al repartidor: {condicion} | Intensidad: {intensidad}")
+            self._clima_prev = (condicion, intensidad)
         self.clima_actual = condicion
         self.intensidad_clima = intensidad
-        print(f"[🌡️] Clima aplicado al repartidor: {condicion} | Intensidad: {intensidad}")
 
 
 
     def aplicar_multiplicador_velocidad(self, m):
+        if getattr(self, "_v0_prev", None) != m:
+            print(f"[⚡] Velocidad base ajustada por clima: {round(m, 2)}")
+            self._v0_prev = m
         self.v0 = m
-        print(f"[⚡] Velocidad base ajustada por clima: {round(m, 2)}")
+
 
 
 
