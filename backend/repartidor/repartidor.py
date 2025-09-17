@@ -182,5 +182,10 @@ class Repartidor:
         self.clima_actual = condicion
         self.intensidad_clima = intensidad
 
+    def aplicar_multiplicador_velocidad(self, m):
+        self.v0 = m
+        print(f"[🌦️] Velocidad base ajustada por clima: {round(m, 2)}")
+
+
     def __str__(self):
         return f"🚴 {self.nombre} ({self.pos_x},{self.pos_y}) | Resistencia: {self.resistencia:.1f} | Reputación: {self.reputacion} | Ingresos: ₡{self.ingresos:.2f}"
