@@ -180,12 +180,11 @@ class Repartidor:
     def aplicar_clima(self, condicion, intensidad):
         self.clima_actual = condicion
         self.intensidad_clima = intensidad
-        print(f"[🌡️] Clima aplicado al repartidor: {condicion} | Intensidad: {intensidad}")
 
 
     def aplicar_multiplicador_velocidad(self, m):
         self.v0 = m
-        print(f"[🌦️] Velocidad base ajustada por clima: {round(m, 2)}")
+
 
 
     def __str__(self):
