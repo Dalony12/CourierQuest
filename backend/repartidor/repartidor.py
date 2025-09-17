@@ -117,16 +117,18 @@ class Repartidor:
         nueva_x = self.pos_x + dx
         nueva_y = self.pos_y + dy
 
-        if self.estado != "Exhausto" or self.resistencia >= 30:
-            velocidad = self.velocidad_actual()
-            desplazamiento_x = dx * velocidad * self.rect.width
-            desplazamiento_y = dy * velocidad * self.rect.height
+        if self.estado == "Exhausto":
+            if self.resistencia < 30:
+                return
 
-            self.rect.centerx += desplazamiento_x
-            self.rect.centery += desplazamiento_y
-
+        # ✅ Movimiento permitido si la celda no está bloqueada
+        if self.puede_moverse_a(nueva_x, nueva_y):
+            self.pos_x = nueva_x
+            self.pos_y = nueva_y
+            self.rect.center = (self.pos_x * self.rect.width, self.pos_y * self.rect.height)
             self._consumir_energia()
             self._actualizar_estado()
+            self.velocidad_actual()
 
         # Limitar el movimiento al área visible considerando el zoom de la cámara
         ancho, alto = limites
