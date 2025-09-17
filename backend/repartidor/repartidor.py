@@ -86,6 +86,10 @@ class Repartidor:
         surface_weight = self.mapa.legend.get(tipo, {}).get("surface_weight", 1.0)
 
         velocidad = self.v0 * Mpeso * Mrep * Mres * surface_weight
+        if getattr(self, "_velocidad_prev", None) != round(velocidad, 2):
+            print(f"[🚀] Velocidad actual: {round(velocidad, 2)} | Multiplicador climático base: {self.v0}")
+            self._velocidad_prev = round(velocidad, 2)
+       
 
         return round(velocidad, 2)
 
@@ -125,8 +129,7 @@ class Repartidor:
             self.rect.center = (self.pos_x * self.rect.width, self.pos_y * self.rect.height)
             self._consumir_energia()
             self._actualizar_estado()
-
-
+            self.velocidad_actual()
 
         # Limitar el movimiento al área visible considerando el zoom de la cámara
         ancho, alto = limites
@@ -190,9 +193,6 @@ class Repartidor:
             print(f"[⚡] Velocidad base ajustada por clima: {round(m, 2)}")
             self._v0_prev = m
         self.v0 = m
-
-
-
 
 
     def __str__(self):
