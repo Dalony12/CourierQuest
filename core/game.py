@@ -20,13 +20,12 @@ class Game:
 
         # Crear repartidor
         self.repartidor = Repartidor(
-            "C:/Universidad/Estructura de Datos/I Proyecto de Estructuras de Datos/CourierQuest/assets/sprites/repartidor/repartidorArriba.png",
-            "C:/Universidad/Estructura de Datos/I Proyecto de Estructuras de Datos/CourierQuest/assets/sprites/repartidor/repartidorAbajo.png",
-            "C:/Universidad/Estructura de Datos/I Proyecto de Estructuras de Datos/CourierQuest/assets/sprites/repartidor/repartidorIzquierda.png",
-            "C:/Universidad/Estructura de Datos/I Proyecto de Estructuras de Datos/CourierQuest/assets/sprites/repartidor/repartidorDerecha.png",
+            "assets/sprites/repartidor/repartidorArriba.png",
+            "assets/sprites/repartidor/repartidorAbajo.png",
+            "assets/sprites/repartidor/repartidorIzquierda.png",
+            "assets/sprites/repartidor/repartidorDerecha.png",
             escala=(TILE_SIZE, TILE_SIZE)
         )
-
         self.repartidor.set_mapa(self.mapa)
         self.repartidor.camara = self.camara
 
