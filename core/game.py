@@ -54,15 +54,9 @@ class Game:
         if not clima_data:
             raise Exception("Error: no se pudo cargar el clima desde la API")
 
-        import pprint
-        print("[📦] Datos crudos recibidos desde la API de clima:")
-        pprint.pprint(clima_data)
-
         # Crear instancia de Clima
         self.clima = Clima(url=None)  # Si no usás la URL directamente, podés dejarla como None
         self.clima._cargar(clima_data)
-        print(f"[✔] Clima cargado para ciudad: {self.clima.city_name}")
-        for i, burst in enumerate(self.clima.bursts):
-            print(f"  Burst {i+1}: condición={burst['condition']}, intensidad={burst['intensity']}, duración={burst['duration']}s")
+    
 
 
