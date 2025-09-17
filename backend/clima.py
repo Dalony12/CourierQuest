@@ -27,7 +27,6 @@ class Clima:
             self.estados = clima_data.get("conditions", [])
             self.matriz_markov = self._convertir_transiciones(clima_data.get("transition", {}))
 
-            # Cargar ráfaga inicial
             inicial = clima_data.get("initial", {})
             self.bursts = [{
                 "condition": inicial.get("condition", "clear"),
@@ -39,6 +38,9 @@ class Clima:
             print(f"[✔] Clima cargado para ciudad: {self.city_name}")
             for i, burst in enumerate(self.bursts):
                 print(f"  Burst {i+1}: condición={burst['condition']}, intensidad={burst['intensity']}, duración={burst['duration']}s")
+
+            print(f"[📋] Estados climáticos disponibles: {self.estados}")
+
 
         except Exception as e:
             print(f"[❌] Error al cargar clima: {e}")
@@ -59,21 +61,32 @@ class Clima:
         base = self.MULTIPLICADORES.get(self.clima_actual, 1.0)
         self.multiplicador_actual = round(base * (1 - 0.2 * burst["intensity"]), 3)
 
+        print(f"[🌦️] Nuevo clima iniciado: {self.clima_actual} | Intensidad: {self.intensidad_actual} | Multiplicador: {self.multiplicador_actual} | Duración: {self.duracion_actual}s")
+
     def actualizar_clima(self):
         tiempo_transcurrido = time.time() - self.tiempo_inicio
         if tiempo_transcurrido >= self.duracion_actual:
+            print(f"[⏱️] Tiempo de ráfaga agotado ({self.duracion_actual}s). Evaluando transición...")
             nuevo_estado = self._siguiente_estado_markov(self.clima_actual)
+            print(f"[🔁] Estado elegido por Markov: {nuevo_estado}")
             burst = self._buscar_burst_por_estado(nuevo_estado)
+            print(f"[📥] Ráfaga aplicada: condición={burst['condition']}, intensidad={burst['intensity']}, duración={burst['duration']}s")
             self._transicion_suave(burst)
 
     def _siguiente_estado_markov(self, actual):
-        destinos, pesos = self.matriz_markov.get(actual, (self.estados, [1.0 / len(self.estados)] * len(self.estados)))
+        if not self.estados:
+            print("[⚠️] Error: lista de estados climáticos vacía. No se puede aplicar Markov.")
+            return actual  # Mantener el estado actual como fallback
+
+        destinos, pesos = self.matriz_markov.get(
+            actual,
+            (self.estados, [1.0 / len(self.estados)] * len(self.estados))
+        )
         return random.choices(destinos, weights=pesos)[0]
 
     def _buscar_burst_por_estado(self, estado):
         candidatos = [b for b in self.bursts if b["condition"] == estado]
         if not candidatos:
-            # Si no hay ráfagas para ese estado, crear una nueva
             intensidad = round(random.uniform(0.0, 1.0), 2)
             duracion = random.randint(45, 60)
             nuevo_burst = {
@@ -82,6 +95,7 @@ class Clima:
                 "duration": duracion
             }
             self.bursts.append(nuevo_burst)
+            print(f"[🆕] Ráfaga generada para estado nuevo: {estado} | Intensidad: {intensidad} | Duración: {duracion}s")
             return nuevo_burst
         return random.choice(candidatos)
 
@@ -89,6 +103,9 @@ class Clima:
         m_inicial = self.multiplicador_actual
         m_final = self.MULTIPLICADORES.get(nuevo_burst["condition"], 1.0)
         m_final = round(m_final * (1 - 0.2 * nuevo_burst["intensity"]), 3)
+
+        print(f"[📉] Transición suave: {self.clima_actual} → {nuevo_burst['condition']}")
+        print(f"     Multiplicador: {m_inicial} → {m_final}")
 
         pasos = 30
         for i in range(pasos):
