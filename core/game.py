@@ -7,12 +7,13 @@ from backend.clima import Clima
 from backend.gestor_pedidos import GestorPedidos
 from frontend.hud import HUD
 from backend import APIcontroller
+from backend.APIcontroller import cargar_con_cache
 from core.config import TILE_SIZE, ZOOM, ANCHO, ALTO
 
 class Game:
     def __init__(self, pantalla, ancho_juego, alto_juego):
         # Obtener datos del mapa
-        mapa_data = APIcontroller.CollectInformacionMapa()
+        mapa_data = cargar_con_cache("mapa", APIcontroller.CollectInformacionMapa)
         if not mapa_data:
             raise Exception("Error: no se pudo cargar el mapa desde la API")
 
@@ -36,7 +37,7 @@ class Game:
         self.hud = HUD(pantalla, max_energy=100)
 
         # Obtener datos de pedidos
-        pedidos_data = APIcontroller.CollectInformacionPedidos()
+        pedidos_data = cargar_con_cache("pedidos", APIcontroller.CollectInformacionPedidos)
         if not pedidos_data:
             raise Exception("Error: no se pudo cargar los pedidos desde la API")
 
@@ -50,7 +51,7 @@ class Game:
             self.gestor_pedidos.agregar_pedido(pedido)
 
         # Obtener datos del clima
-        clima_data = APIcontroller.CollectInformacionClima()
+        clima_data = cargar_con_cache("clima", APIcontroller.CollectInformacionClima)
         if not clima_data:
             raise Exception("Error: no se pudo cargar el clima desde la API")
 

@@ -18,7 +18,7 @@ class Inventario:
     
     
 class Repartidor:
-    def __init__(self, imagen_arriba, imagen_abajo, imagen_izq, imagen_der, escala=(50, 50), velocidad=1):
+    def __init__(self, imagen_arriba, imagen_abajo, imagen_izq, imagen_der, escala=(50, 50), velocidad=0.1):
         self.nombre = "Lopez"
         self.pos_x = 0
         self.pos_y = 0
@@ -119,8 +119,8 @@ class Repartidor:
 
         # Movimiento fluido en píxeles
         velocidad = self.velocidad_actual()
-        desplazamiento_x = dx * velocidad * self.rect.width
-        desplazamiento_y = dy * velocidad * self.rect.height
+        desplazamiento_x = dx * velocidad * 17
+        desplazamiento_y = dy * velocidad * 17
 
         # Validar celda destino antes de mover
         celda_destino_x = (self.rect.centerx + desplazamiento_x) // self.rect.width
