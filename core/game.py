@@ -33,8 +33,8 @@ class Game:
 
         self.repartidor.rect.center = (self.mapa.width * TILE_SIZE // 2, self.mapa.height * TILE_SIZE // 2)
 
-        # Crear HUD
-        self.hud = HUD(pantalla, max_energy=100)
+        # Crear HUD y pasar referencia al repartidor
+        self.hud = HUD(pantalla, repartidor=self.repartidor)
 
         # Obtener datos de pedidos
         pedidos_data = cargar_con_cache("pedidos", APIcontroller.CollectInformacionPedidos)

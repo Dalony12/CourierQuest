@@ -2,21 +2,27 @@ import pygame
 import time 
 import os
 
-
 class HUD:
-    def __init__(self, screen, max_energy=100):
+    def __init__(self, screen, repartidor=None):
         self.screen = screen
         self.tiempo_inicio = time.time()
-        self.max_energy = max_energy
-        self.energy = max_energy
+        self.repartidor = repartidor  # Referencia directa al repartidor
         self.score = 0
         self.font = pygame.font.Font(None, 36)
-
-        # Diccionario para posiciones personalizadas de cada sprite
-        # Puedes modificar estos valores desde tu código para ajustar la posición de cada sprite
         self.sprite_positions = {
-            'btnAceptar': (77, 200),
-            'gps': (50, 300),
+            'hud':                 (0, 0),
+            'gps':                 (759, 5),
+            'cellphone':           (775, 483),
+            'app':                 (785, 505),
+            'btnAceptar':          (797, 640),
+            'btnRechazar':         (897, 640),
+            'btnAnteriorPedido':   (783, 700),
+            'btnOrdenarHora':      (889, 700),
+            'btnOrdenarPrioridad': (858, 700),
+            'btnSiguientePedido':  (930, 700),
+            'btnVerPedidos':       (858, 735),
+            'cansadoOff':          (20, 714),
+            'cansadoOn':           (9, 710),
         }
 
         # Ruta a los sprites del HUD
@@ -29,17 +35,35 @@ class HUD:
                 full_path = os.path.join(hud_sprites_path, filename)
                 self.sprites[key] = pygame.image.load(full_path).convert_alpha()
 
-        # Pila para el orden de dibujo de los sprites (de fondo a frente)
-        # Agrega aquí los nombres de los sprites en el orden que quieras que se dibujen
+        # Orden de dibujo: fondo HUD, GPS, cellphone, app, luego el resto como apps
         self.draw_stack = [
-            'hud',  # El fondo siempre primero si existe
-            'btnAceptar',
+            'hud',
             'gps',
-            # ...agrega aquí otros nombres de sprites en el orden deseado...
+            'cellphone',
+            'app',
+            'btnAceptar',
+            'btnAnteriorPedido',
+            'btnOrdenarHora',
+            'btnOrdenarPrioridad',
+            'btnRechazar',
+            'btnSiguientePedido',
+            'btnVerPedidos',
+            # Los sprites de cansancio van al final para que estén siempre visibles
+            'cansadoOff',
+            'cansadoOn',
         ]
+        # Agregar el resto de los sprites (excepto los ya puestos) debajo de 'app' como apps
+        extra_apps = [k for k in self.sprites.keys() if k not in self.draw_stack]
+        # Ordenar para que btns y otros estén debajo de app
+        extra_apps.sort()
+        self.draw_stack.extend(extra_apps)
 
-    def update_energy(self, amount):
-        self.energy = max(0, min(self.max_energy, self.energy + amount))
+        # Posicionar las apps debajo de 'app' en el cellphone
+        app_x, app_y = self.sprite_positions['app']
+        offset_y = 45  # Espacio entre apps
+        for i, k in enumerate(extra_apps):
+            self.sprite_positions[k] = (app_x, app_y + (i+1)*offset_y)
+
 
     def add_score(self, points):
         self.score += points
@@ -59,19 +83,46 @@ class HUD:
         """Dibuja los sprites PNG del HUD en el orden definido por draw_stack (de fondo a frente)."""
         if surface is None:
             surface = self.screen
-        # Si la pila está vacía, dibuja todos los sprites como antes
-        if not self.draw_stack:
-            for key, sprite in self.sprites.items():
+
+        # --- Barra de energía basada en la resistencia del repartidor ---
+        energia = self.repartidor.resistencia if self.repartidor else 0
+        max_energia = 100
+        barra_x, barra_y = 30, 670  # Ajusta la posición de la barra aquí
+        barra_w, barra_h = 200, 20
+        self.draw_bar(barra_x, barra_y, energia, max_energia, (0, 255, 0), width=barra_w, height=barra_h, surface=surface)
+
+        # --- Lógica de alerta de cansancio según la energía ---
+        import time
+        mostrar_cansado_on = False
+        mostrar_cansado_off = False
+        if energia == 0:
+            mostrar_cansado_on = False
+            mostrar_cansado_off = True  # Off fijo
+        elif 0 < energia < 30:
+            # Parpadeo: alterna cada 0.5 segundos
+            if int(time.time() * 2) % 2 == 0:
+                mostrar_cansado_on = True
+                mostrar_cansado_off = False
+            else:
+                mostrar_cansado_on = False
+                mostrar_cansado_off = True
+        elif energia >= 30:
+            mostrar_cansado_on = False
+            mostrar_cansado_off = True
+
+        # Dibuja los sprites según la lógica
+        for key in self.draw_stack:
+            # Ocultar/mostrar los sprites según la energía
+            if key == 'cansadoOff' and not mostrar_cansado_off:
+                continue  # Oculta cansadoOff si no debe mostrarse
+            if key == 'cansadoOn' and not mostrar_cansado_on:
+                continue  # Oculta cansadoOn si no debe mostrarse
+            sprite = self.sprites.get(key)
+            if sprite:
                 pos = self.sprite_positions.get(key, (0, 0))
+                # Escalar el fondo si es 'hud'
+                if key == 'hud':
+                    sprite = pygame.transform.scale(sprite, surface.get_size())
                 surface.blit(sprite, pos)
-        else:
-            for key in self.draw_stack:
-                sprite = self.sprites.get(key)
-                if sprite:
-                    pos = self.sprite_positions.get(key, (0, 0))
-                    # Escalar el fondo si es 'hud'
-                    if key == 'hud':
-                        sprite = pygame.transform.scale(sprite, surface.get_size())
-                    surface.blit(sprite, pos)
 
 

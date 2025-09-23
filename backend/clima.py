@@ -39,7 +39,7 @@ class Clima:
             for i, burst in enumerate(self.bursts):
                 print(f"  Burst {i+1}: condición={burst['condition']}, intensidad={burst['intensity']}, duración={burst['duration']}s")
 
-            print(f"[📋] Estados climáticos disponibles: {self.estados}")
+            print(f"Estados climáticos disponibles: {self.estados}")
 
 
         except Exception as e:
@@ -61,16 +61,16 @@ class Clima:
         base = self.MULTIPLICADORES.get(self.clima_actual, 1.0)
         self.multiplicador_actual = round(base * (1 - 0.2 * burst["intensity"]), 3)
 
-        print(f"[🌦️] Nuevo clima iniciado: {self.clima_actual} | Intensidad: {self.intensidad_actual} | Multiplicador: {self.multiplicador_actual} | Duración: {self.duracion_actual}s")
+        print(f"Nuevo clima iniciado: {self.clima_actual} | Intensidad: {self.intensidad_actual} | Multiplicador: {self.multiplicador_actual} | Duración: {self.duracion_actual}s")
 
     def actualizar_clima(self):
         tiempo_transcurrido = time.time() - self.tiempo_inicio
         if tiempo_transcurrido >= self.duracion_actual:
-            print(f"[⏱️] Tiempo de ráfaga agotado ({self.duracion_actual}s). Evaluando transición...")
+            print(f"Tiempo de ráfaga agotado ({self.duracion_actual}s). Evaluando transición...")
             nuevo_estado = self._siguiente_estado_markov(self.clima_actual)
-            print(f"[🔁] Estado elegido por Markov: {nuevo_estado}")
+            print(f"Estado elegido por Markov: {nuevo_estado}")
             burst = self._buscar_burst_por_estado(nuevo_estado)
-            print(f"[📥] Ráfaga aplicada: condición={burst['condition']}, intensidad={burst['intensity']}, duración={burst['duration']}s")
+            print(f"Ráfaga aplicada: condición={burst['condition']}, intensidad={burst['intensity']}, duración={burst['duration']}s")
             self._transicion_suave(burst)
 
     def _siguiente_estado_markov(self, actual):
@@ -95,7 +95,7 @@ class Clima:
                 "duration": duracion
             }
             self.bursts.append(nuevo_burst)
-            print(f"[🆕] Ráfaga generada para estado nuevo: {estado} | Intensidad: {intensidad} | Duración: {duracion}s")
+            print(f"Ráfaga generada para estado nuevo: {estado} | Intensidad: {intensidad} | Duración: {duracion}s")
             return nuevo_burst
         return random.choice(candidatos)
 
@@ -104,8 +104,8 @@ class Clima:
         m_final = self.MULTIPLICADORES.get(nuevo_burst["condition"], 1.0)
         m_final = round(m_final * (1 - 0.2 * nuevo_burst["intensity"]), 3)
 
-        print(f"[📉] Transición suave: {self.clima_actual} → {nuevo_burst['condition']}")
-        print(f"     Multiplicador: {m_inicial} → {m_final}")
+        print(f" Transición suave: {self.clima_actual} → {nuevo_burst['condition']}")
+        print(f" Multiplicador: {m_inicial} → {m_final}")
 
         pasos = 30
         for i in range(pasos):

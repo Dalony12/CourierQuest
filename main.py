@@ -7,20 +7,16 @@ def main():
     pygame.init()
     VENTANA_ANCHO, VENTANA_ALTO = 1024, 768
     JUEGO_ANCHO, JUEGO_ALTO = 750, 700
-    PANEL_ANCHO = VENTANA_ANCHO - JUEGO_ANCHO
-    PANEL_ALTO = VENTANA_ALTO
 
     pantalla = pygame.display.set_mode((VENTANA_ANCHO, VENTANA_ALTO))
     pygame.display.set_caption("CourierQuest")
 
     # Surface para el área de juego
     surface_juego = pygame.Surface((JUEGO_ANCHO, JUEGO_ALTO))
-    # Surface para el panel de interfaz (opcional, aquí solo lo llenamos de color)
-    surface_panel = pygame.Surface((PANEL_ANCHO, PANEL_ALTO))
 
     game = Game(surface_juego, JUEGO_ANCHO, JUEGO_ALTO)
 
-    def game_loop_mod(pantalla, game, surface_juego, surface_panel, JUEGO_ANCHO, JUEGO_ALTO):
+    def game_loop_mod(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         import sys
         import pygame
         from pygame.locals import QUIT
@@ -59,30 +55,37 @@ def main():
             multiplicador = game.clima.get_multiplicador()
             game.repartidor.aplicar_multiplicador_velocidad(multiplicador)
 
-            game.hud.update_energy(-0.05)
             game.hud.add_score(1)
-            # --- Dibujo de panel HUD (fondo)
-            surface_panel.fill((40, 40, 40))
-            game.hud.draw(surface_panel)
-            # --- Dibujo del área de juego (encima del HUD)
+
+            # --- Dibujo de HUD de fondo (abarca toda la pantalla)
+            pantalla.fill((0, 0, 0))
+            game.hud.draw(pantalla)
+
+            # --- Dibujo del área de juego (centrada en el HUD)
             surface_juego.fill((0, 0, 0))
-            # Si el mapa es más pequeño, dibujar centrado
             if mapa_w < JUEGO_ANCHO or mapa_h < JUEGO_ALTO:
                 draw_map(surface_juego.subsurface(pygame.Rect(offset_x, offset_y, mapa_w, mapa_h)), game.mapa, game.camara, TILE_SIZE)
                 draw_repartidor(surface_juego, game.repartidor, game.camara)
             else:
                 draw_map(surface_juego, game.mapa, game.camara, TILE_SIZE)
                 draw_repartidor(surface_juego, game.repartidor, game.camara)
-            # --- Composición final en la ventana principal
-            pantalla.fill((0, 0, 0))
-            pantalla.blit(surface_panel, (JUEGO_ANCHO, 0))
-            pantalla.blit(surface_juego, (0, 0))
+
+            # Coordenadas para centrar el área de juego en la ventana principal, pero desplazadas un poco a la izquierda y arriba
+            desplazamiento_x = 133  # 2 píxeles más a la derecha
+            desplazamiento_y = -0   # base
+            juego_x = (VENTANA_ANCHO - JUEGO_ANCHO) // 2 - desplazamiento_x
+            juego_y = (VENTANA_ALTO - JUEGO_ALTO) // 2 - desplazamiento_y - 100 + 70  # 10 píxeles más abajo
+            pantalla.blit(surface_juego, (juego_x, juego_y))
+
+            # --- Dibujo de los elementos de la interfaz (sprites PNG) sobre todo
+            game.hud.draw(pantalla)
+
             pygame.display.flip()
             reloj.tick(FPS)
         pygame.quit()
         sys.exit()
 
-    game_loop_mod(pantalla, game, surface_juego, surface_panel, JUEGO_ANCHO, JUEGO_ALTO)
+    game_loop_mod(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO)
 
 if __name__ == "__main__":
     main()

@@ -10,7 +10,6 @@ class Pedido:
         self.weight = None
         self.priority = None
         self.release_time = None
-
         self.recogido = False
         self.entregado = False
 

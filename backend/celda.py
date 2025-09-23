@@ -4,11 +4,7 @@ TILE_SIZE = 20
 
 class Celda:
     def __init__(self, tipo, x, y, legend):
-        """
-        tipo: clave de la leyenda, por ejemplo 'C', 'B', 'P'
-        x, y: posición en el mapa (columnas y filas)
-        legend: diccionario con información de cada tipo de tile
-        """
+        
         self.tipo = tipo
         self.x = x
         self.y = y

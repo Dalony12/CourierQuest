@@ -93,9 +93,25 @@ class Repartidor:
         return round(velocidad, 2)
 
 
+
     def mover(self, limites):
         teclas = pygame.key.get_pressed()
         dx, dy = 0, 0
+
+
+
+        # Si la resistencia llegó a 0, bloquear controles hasta que recupere 30
+        if hasattr(self, '_bloqueado') and self._bloqueado:
+            if self.resistencia >= 30:
+                self._bloqueado = False
+            else:
+                self.descansar()
+                return
+
+        if self.resistencia <= 0:
+            self._bloqueado = True
+            self.descansar()
+            return
 
         if teclas[pygame.K_UP] or teclas[pygame.K_w]:
             dy = -1
@@ -110,11 +126,10 @@ class Repartidor:
             dx = 1
             self.direccion = "der"
 
+
+        # Si está quieto, recupera energía
         if dx == 0 and dy == 0:
             self.descansar()
-            return 
-
-        if self.estado == "Exhausto" and self.resistencia < 30:
             return
 
         # Movimiento fluido en píxeles
@@ -132,7 +147,6 @@ class Repartidor:
             self._consumir_energia()
             self._actualizar_estado()
             self.velocidad_actual()
-
 
         # Limitar el movimiento al área visible considerando el zoom de la cámara
         ancho, alto = limites
