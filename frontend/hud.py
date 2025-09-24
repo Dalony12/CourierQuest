@@ -3,6 +3,73 @@ import time
 import os
 
 class HUD:
+    def mostrar_pedido_app(self, pantalla, pedido):
+        # Dibuja la info del pedido alineada con los iconos del app.png
+        app_pos = self.sprite_positions['app']
+        app_sprite = self.sprites['app']
+        app_rect = pygame.Rect(app_pos, app_sprite.get_size())
+        font = pygame.font.Font(None, 22)
+        # Posiciones de los iconos (ajustadas según el png adjunto)
+        icon_y = [app_pos[1]+8, app_pos[1]+38, app_pos[1]+68, app_pos[1]+98]
+        icon_x = app_pos[0]+8
+        text_x = icon_x + 32  # texto a la derecha del icono
+        # Texto en negro y alineado
+        txt1 = font.render(f"{pedido.pickup} / {pedido.dropoff}", True, (0,0,0))
+        txt2 = font.render(f"{pedido.peso}", True, (0,0,0))
+        txt3 = font.render(f"${pedido.payout}", True, (0,0,0))
+        txt4 = font.render(f"{pedido.deadline.strftime('%H:%M') if pedido.deadline else '-'}", True, (0,0,0))
+        pantalla.blit(txt1, (text_x, icon_y[0]))
+        pantalla.blit(txt2, (text_x, icon_y[1]))
+        pantalla.blit(txt3, (text_x, icon_y[2]))
+        pantalla.blit(txt4, (text_x, icon_y[3]))
+        # Botón aceptar
+        btn_pos = self.sprite_positions['btnAceptar']
+        pantalla.blit(self.sprites['btnAceptar'], btn_pos)
+        # Botón rechazar
+        btnr_pos = self.sprite_positions['btnRechazar']
+        pantalla.blit(self.sprites['btnRechazar'], btnr_pos)
+    def draw_minimap(self, mapa, repartidor, surface=None):
+        """Genera el minimapa usando el renderizado real del juego, expandido y centrado dentro del GPS."""
+        import pygame
+        from frontend.render import draw_map
+        from core.config import TILE_SIZE
+        if surface is None:
+            surface = self.screen
+        # Obtener tamaño y posición del GPS
+        gps_sprite = self.sprites.get('gps')
+        gps_x, gps_y = self.sprite_positions.get('gps', (759, 5))
+        # Tamaño fijo solicitado para el minimapa
+        minimap_w = 250
+        minimap_h = 250
+        # Centrar el minimapa dentro del GPS
+        if gps_sprite:
+            gps_w, gps_h = gps_sprite.get_width(), gps_sprite.get_height()
+            minimap_x = gps_x + (gps_w - minimap_w) // 2
+            minimap_y = gps_y + (gps_h - minimap_h) // 2 - 10
+        else:
+            minimap_x, minimap_y = gps_x, gps_y - 10
+        minimap_surface = pygame.Surface((minimap_w, minimap_h))
+        minimap_surface.fill((200, 200, 200))
+        # Dibujar el mapa completo en un surface grande y escalarlo para evitar líneas blancas
+        map_w, map_h = mapa.width * TILE_SIZE, mapa.height * TILE_SIZE
+        map_surface = pygame.Surface((map_w, map_h))
+        # Usar una cámara dummy para dibujar el mapa sin escalado
+        class DummyCam:
+            def apply_surface(self, surf, rect):
+                return surf, rect
+        dummycam = DummyCam()
+        draw_map(map_surface, mapa, dummycam, TILE_SIZE)
+        # Escalar el mapa al tamaño exacto del minimapa (250x250)
+        minimap_scaled = pygame.transform.smoothscale(map_surface, (minimap_w, minimap_h))
+        minimap_surface.blit(minimap_scaled, (0, 0))
+        # Dibujar punto rojo más pequeño en la posición del repartidor
+        scale_x = minimap_w / map_w
+        scale_y = minimap_h / map_h
+        rep_x = int(repartidor.rect.centerx * scale_x)
+        rep_y = int(repartidor.rect.centery * scale_y)
+        pygame.draw.circle(minimap_surface, (255, 0, 0), (rep_x, rep_y), 4)
+        # Blitea el minimapa centrado dentro del GPS
+        surface.blit(minimap_surface, (minimap_x, minimap_y))
     def __init__(self, screen, repartidor=None):
         self.screen = screen
         self.tiempo_inicio = time.time()
@@ -79,7 +146,8 @@ class HUD:
         fill_width = int((current / maximum) * (width - 4))
         pygame.draw.rect(surface, color, (x + 2, y + 2, fill_width, height - 4))
 
-    def draw(self, surface=None):
+
+    def draw(self, surface=None, mapa=None, repartidor=None):
         """Dibuja los sprites PNG del HUD en el orden definido por draw_stack (de fondo a frente)."""
         if surface is None:
             surface = self.screen
@@ -124,5 +192,10 @@ class HUD:
                 if key == 'hud':
                     sprite = pygame.transform.scale(sprite, surface.get_size())
                 surface.blit(sprite, pos)
+
+
+        # --- Minimap por encima de todo ---
+        if mapa and repartidor:
+            self.draw_minimap(mapa, repartidor, surface)
 
 

@@ -30,19 +30,17 @@ def game_loop(pantalla, game):
         game.repartidor.aplicar_multiplicador_velocidad(multiplicador)
 
         # Actualizar lógica de pedidos
+
         tiempo_actual = game.hud.tiempo_transcurrido()
 
-
         # Sincronizar la barra de energía del HUD con la resistencia del repartidor
-        game.hud.energy = game.repartidor.resistencia
-        game.hud.max_energy = 100  # O usa game.repartidor.puede tener un valor máximo configurable
         game.hud.add_score(1)
 
         # Dibujar
         pantalla.fill((0, 0, 0))
         draw_map(pantalla, game.mapa, game.camara, TILE_SIZE)
         draw_repartidor(pantalla, game.repartidor, game.camara)
-        game.hud.draw()
+        game.hud.draw(surface=pantalla, mapa=game.mapa, repartidor=game.repartidor)
         
                 
         tiempo_actual = game.hud.tiempo_transcurrido()

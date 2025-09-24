@@ -14,7 +14,7 @@ class Inventario:
         return self.items
 
     def peso_total(self):
-        return sum(p.peso for p in self.items)
+        return sum(p.weight for p in self.items)
     
     
 class Repartidor:

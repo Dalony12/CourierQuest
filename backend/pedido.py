@@ -7,7 +7,7 @@ class Pedido:
         self.dropoff = []
         self.payout = None
         self.deadline = None
-        self.weight = None
+        self.peso = None
         self.priority = None
         self.release_time = None
         self.recogido = False
@@ -21,7 +21,7 @@ class Pedido:
             self.dropoff = data.get("dropoff", [])
             self.payout = data.get("payout")
             self.deadline = datetime.fromisoformat(data.get("deadline")) if data.get("deadline") else None
-            self.weight = data.get("weight")
+            self.peso = data.get("weight")
             self.priority = data.get("priority")
             self.release_time = data.get("release_time")
         except Exception as e:
@@ -29,4 +29,4 @@ class Pedido:
 
     def __str__(self):
         estado = "✅" if self.entregado else "📦" if self.recogido else "🕒"
-        return f"{estado} {self.id} → {self.dropoff} | peso: {self.weight} | $ {self.payout}"
+        return f"{estado} {self.id} → {self.dropoff} | peso: {self.peso} | $ {self.payout}"
