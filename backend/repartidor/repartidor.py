@@ -19,7 +19,7 @@ class Inventario:
     
     
 class Repartidor:
-    def __init__(self, imagen_arriba, imagen_abajo, imagen_izq, imagen_der, escala=(50, 50), velocidad=0.1):
+    def __init__(self, imagen_arriba, imagen_abajo, imagen_izq, imagen_der, escala=(50, 50), velocidad=1.5):
         self.nombre = "Lopez"
         self.pos_x = 0
         self.pos_y = 0
@@ -82,7 +82,6 @@ class Repartidor:
 
 
     def velocidad_actual(self):
-        print("📡 velocidad_actual() fue llamado")
         Mpeso = max(0.8, 1 - 0.03 * self.inventario.peso_total())
         Mrep = 1.03 if self.reputacion >= 90 else 1.0
         Mres = 1.0 if self.estado == "Normal" else 0.8 if self.estado == "Cansado" else 0.0
@@ -97,7 +96,8 @@ class Repartidor:
         "rain": 0.85, "storm": 0.75, "fog": 0.88,
         "wind": 0.92, "heat": 0.90, "cold": 0.92
         }
-        Mclima = multiplicadores_clima.get(self.clima_actual, 1.0) * self.intensidad_clima
+        Mclima = max(0.1, multiplicadores_clima.get(self.clima_actual, 1.0) * self.intensidad_clima)
+
 
         velocidad = self.v0 * Mclima * Mpeso * Mrep * Mres * surface_weight
         
@@ -106,7 +106,11 @@ class Repartidor:
         print(f"📡 velocidad_actual() llamada")
         print(f"📍 Celda actual: ({celda_x}, {celda_y}) tipo={celda.tipo}")
         print(f"🌳 surface_weight aplicado: {surface_weight}")
+        print(f"📦 Peso total: {self.inventario.peso_total()}")
+        print(f"🌦️ Clima actual: {self.clima_actual} | Intensidad: {self.intensidad_clima}")
+        print(f"🌀 Multiplicador climático aplicado: {round(Mclima, 2)}")
         print(f"🚴 Velocidad calculada: {round(velocidad, 2)}")
+
         return round(velocidad, 2)
 
 
@@ -218,7 +222,8 @@ class Repartidor:
     def aplicar_clima(self, condicion, intensidad):
         self._clima_prev = (condicion, intensidad)
         self.clima_actual = condicion
-        self.intensidad_clima = intensidad
+        self.intensidad_clima = max(0.1, intensidad)
+
 
 
 

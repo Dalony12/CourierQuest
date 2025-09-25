@@ -3,6 +3,8 @@ from core.config import ANCHO, ALTO
 from core.game import Game
 from core.loop import game_loop
 import random
+from backend.paquete import Paquete
+import datetime
 
 def loading_screen(pantalla):
     import pygame
@@ -185,13 +187,16 @@ def main():
             slide_start = None
             slide_end = None
             slide_progress = 0.0
-            slide_duration = 80  # ms para deslizar entre casillas (más rápido y fluido)
+            rep = game.repartidor
+            velocidad = rep.velocidad_actual()
+            slide_duration = max(40, int(80 / velocidad))  # más lento si velocidad baja
             import random
             pedido_activo = None
             pedido_timer = pygame.time.get_ticks() + random.randint(3000, 6000)
             mostrar_pedido = False
             pedido_info = None
             pedido_aceptado = False
+
             while running:
                 dx, dy, dir = 0, 0, None
                 moved = False
@@ -222,6 +227,7 @@ def main():
                             pedido_activo = None
                             pedido_info = None
                             pedido_timer = pygame.time.get_ticks() + random.randint(3000, 6000)
+
                     # Detectar inicio de movimiento y actualizar dirección activa
                     if evento.type == pygame.KEYDOWN:
                         if evento.key == pygame.K_UP:
@@ -242,6 +248,7 @@ def main():
                             active_dirs.discard("izq")
                         elif evento.key == pygame.K_RIGHT:
                             active_dirs.discard("der")
+
                 # Prioridad: última dirección presionada
                 if active_dirs:
                     move_dir = list(active_dirs)[-1]
@@ -257,7 +264,6 @@ def main():
                         pedido_info = pedido_activo
                         mostrar_pedido = True
                 # Bloqueo por resistencia baja
-                rep = game.repartidor
                 # Nueva variable para bloqueo persistente
                 bloqueado = getattr(rep, '_bloqueado', False)
                 if rep.resistencia <= 0:
@@ -267,8 +273,17 @@ def main():
                 if bloqueado and rep.resistencia >= 30:
                     bloqueado = False
                     rep._bloqueado = False
+
+                 # ACTUALIZAR CLIMA AQUÍ
+                game.clima.actualizar_clima()
+                estado = game.clima.get_estado_climatico()
+                game.repartidor.aplicar_clima(estado["condicion"], estado["intensidad"])
+                multiplicador = game.clima.get_multiplicador()
+
                 # Movimiento exacto por tile y animación de pedaleo solo si no está bloqueado y no aceptando/rechazando pedido
                 if move_dir and current_time - last_move_time > move_delay and not bloqueado and not sliding:
+                    velocidad = rep.velocidad_actual()
+                    
                     if move_dir == "arriba":
                         dy = -1
                         dir = "arriba"
@@ -358,6 +373,7 @@ def main():
                     pedido_info = None
                     pedido_aceptado = False
                     pedido_timer = pygame.time.get_ticks() + random.randint(3000, 6000)
+
                 # Contador de fin de turno en esquina superior izquierda
                 font = pygame.font.Font(None, 32)
                 cronometro_txt = f"Fin de turno: {minutos:02d}:{segundos:02d}"
@@ -377,6 +393,6 @@ def main():
             resultado_final(pantalla, game.repartidor.meta_ingresos, game.repartidor.ingresos)
             return
         game_loop_mod(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO)
-
+ 
 if __name__ == "__main__":
     main()

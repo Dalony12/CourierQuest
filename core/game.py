@@ -58,6 +58,11 @@ class Game:
         # Crear instancia de Clima
         self.clima = Clima(url=None)  # Si no usás la URL directamente, podés dejarla como None
         self.clima._cargar(clima_data)
+
+        self.paquete_activo = None
+        self.indice_color = 0
+        self.colores_paquete = ["Rojo", "Verde", "Azul", "Amarillo", "Morado", "Celeste", "Naranja"]
+
     
 
 

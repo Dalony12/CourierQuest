@@ -12,6 +12,8 @@ class Pedido:
         self.release_time = None
         self.recogido = False
         self.entregado = False
+        self.color = None  # color visual asignado
+
 
     def _cargar(self, data):
         """Carga los datos del pedido desde un diccionario."""

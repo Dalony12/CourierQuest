@@ -4,6 +4,7 @@ from pygame.locals import QUIT
 from core.config import FPS, TILE_SIZE
 from frontend.render import draw_map, draw_repartidor
 from datetime import datetime
+from backend.paquete import Paquete
 
 def game_loop(pantalla, game):
     reloj = pygame.time.Clock()
@@ -16,6 +17,18 @@ def game_loop(pantalla, game):
 
         # Actualizar lógica
         game.repartidor.mover((game.mapa.width * TILE_SIZE, game.mapa.height * TILE_SIZE))
+        # Detectar recogida
+        if game.pedido_activo and not getattr(game.pedido_activo, "recogido", False):
+            if (game.repartidor.pos_x, game.repartidor.pos_y) == tuple(game.pedido_activo.pickup):
+                game.pedido_activo.recogido = True
+                print(f"[DEBUG] Pedido {game.pedido_activo.id} recogido")
+
+        # Detectar entrega
+        if game.pedido_activo and getattr(game.pedido_activo, "recogido", False) and not getattr(game.pedido_activo, "entregado", False):
+            if (game.repartidor.pos_x, game.repartidor.pos_y) == tuple(game.pedido_activo.dropoff):
+                game.pedido_activo.entregado = True
+                print(f"[DEBUG] Pedido {game.pedido_activo.id} entregado")
+
         game.camara.update(game.repartidor.rect)
 
         # Actualizar clima dinámico
@@ -39,6 +52,7 @@ def game_loop(pantalla, game):
         # Dibujar
         pantalla.fill((0, 0, 0))
         draw_map(pantalla, game.mapa, game.camara, TILE_SIZE)
+        dibujar_paquete_y_buzon(pantalla, game)
         draw_repartidor(pantalla, game.repartidor, game.camara)
         game.hud.draw(surface=pantalla, mapa=game.mapa, repartidor=game.repartidor)
         
@@ -55,6 +69,25 @@ def game_loop(pantalla, game):
 
                 # Texto informativo
                 game.hud.mostrar_texto(f"Pedido disponible: {pedido.id} → {pedido.dropoff}", x=150, y=710)
+
+                if pygame.mouse.get_pressed()[0]:
+                    mx, my = pygame.mouse.get_pos()
+                    if pygame.Rect(30, 700, 100, 40).collidepoint(mx, my):
+                        # Aceptar pedido
+                        pedido.color = game.colores_paquete[game.indice_color % len(game.colores_paquete)]
+                        game.indice_color += 1
+
+                        paquete = Paquete()
+                        paquete.codigo = pedido.id
+                        paquete.origen = pedido.pickup
+                        paquete.destino = pedido.dropoff
+                        paquete.peso = pedido.peso
+                        paquete.payout = pedido.payout
+                        paquete.color = pedido.color
+
+                        game.paquete_activo = paquete
+                        game.pedido_activo = pedido
+
 
         # Mostrar pedidos en inventario
         for pedido in game.repartidor.inventario.obtener_items():
@@ -84,3 +117,28 @@ def game_loop(pantalla, game):
 
     pygame.quit()
     sys.exit()
+
+def coordenadas_a_pixeles(coord):
+    from core.config import TILE_SIZE
+    x, y = coord
+    return x * TILE_SIZE, y * TILE_SIZE
+
+def dibujar_paquete_y_buzon(pantalla, game):
+    if not game.paquete_activo or not game.pedido_activo:
+        return
+
+    color = game.paquete_activo.color
+
+    # Mostrar paquete si no ha sido recogido
+    if not getattr(game.pedido_activo, "recogido", False):
+        sprite = game.hud.sprites.get(f"paquete{color}")
+        if sprite:
+            x, y = coordenadas_a_pixeles(game.paquete_activo.origen)
+            pantalla.blit(sprite, (x, y))
+
+    # Mostrar buzón si fue recogido pero no entregado
+    if getattr(game.pedido_activo, "recogido", False) and not getattr(game.pedido_activo, "entregado", False):
+        sprite = game.hud.sprites.get(f"buzon{color}")
+        if sprite:
+            x, y = coordenadas_a_pixeles(game.paquete_activo.destino)
+            pantalla.blit(sprite, (x, y))
