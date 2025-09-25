@@ -173,7 +173,7 @@ def main():
             tiempo_inicio = pygame.time.get_ticks()
             # Variables para movimiento continuo
             last_move_time = 0
-            move_delay = 333  # ms entre movimientos (3 celdas por segundo)
+            move_delay = 148  # ms entre movimientos (3 celdas por segundo)
             move_dir = None
             anim_scale = 1.0
             anim_growing = True
