@@ -1,4 +1,5 @@
 import pygame
+import math
 
 class Inventario:
     def __init__(self):
@@ -14,7 +15,7 @@ class Inventario:
         return self.items
 
     def peso_total(self):
-        return sum(p.weight for p in self.items)
+        return sum(p.peso for p in self.items)
     
     
 class Repartidor:
@@ -70,31 +71,48 @@ class Repartidor:
 
     def _consumir_energia(self):
         base = 0.5
-        extra_peso = max(0, self.inventario.peso_total() - 3) * 0.2
+        exceso = max(0, self.inventario.peso_total() - 3)
+        penal_por_peso = math.floor(exceso) * 0.2
+
         clima_penal = {
             "rain": 0.1, "wind": 0.1, "storm": 0.3, "heat": 0.2
         }.get(self.clima_actual, 0)
-        self.resistencia -= base + extra_peso + clima_penal
+
+        self.resistencia -= base + penal_por_peso + clima_penal
 
 
     def velocidad_actual(self):
+        print("📡 velocidad_actual() fue llamado")
         Mpeso = max(0.8, 1 - 0.03 * self.inventario.peso_total())
         Mrep = 1.03 if self.reputacion >= 90 else 1.0
         Mres = 1.0 if self.estado == "Normal" else 0.8 if self.estado == "Cansado" else 0.0
 
-        tipo = self.mapa.celdas[self.pos_x][self.pos_y].tipo if self.mapa else "N"
-        surface_weight = self.mapa.legend.get(tipo, {}).get("surface_weight", 1.0)
+        celda_x = self.rect.centerx // self.rect.width
+        celda_y = self.rect.centery // self.rect.height
+        celda = self.mapa.celdas[int(celda_x)][int(celda_y)]
+        surface_weight = celda.surface_weight
 
-        velocidad = self.v0 * Mpeso * Mrep * Mres * surface_weight
+        multiplicadores_clima = {
+        "clear": 1.00, "clouds": 0.98, "rain_light": 0.90,
+        "rain": 0.85, "storm": 0.75, "fog": 0.88,
+        "wind": 0.92, "heat": 0.90, "cold": 0.92
+        }
+        Mclima = multiplicadores_clima.get(self.clima_actual, 1.0) * self.intensidad_clima
+
+        velocidad = self.v0 * Mclima * Mpeso * Mrep * Mres * surface_weight
         
         self._velocidad_prev = round(velocidad, 2)
-       
 
+        print(f"📡 velocidad_actual() llamada")
+        print(f"📍 Celda actual: ({celda_x}, {celda_y}) tipo={celda.tipo}")
+        print(f"🌳 surface_weight aplicado: {surface_weight}")
+        print(f"🚴 Velocidad calculada: {round(velocidad, 2)}")
         return round(velocidad, 2)
 
 
 
     def mover(self, limites):
+        print("🕹️ mover() fue llamado")
         teclas = pygame.key.get_pressed()
         dx, dy = 0, 0
 
@@ -126,6 +144,7 @@ class Repartidor:
             dx = 1
             self.direccion = "der"
 
+        
 
         # Si está quieto, recupera energía
         if dx == 0 and dy == 0:
