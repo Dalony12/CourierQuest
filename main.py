@@ -171,7 +171,7 @@ def main():
             tiempo_inicio = pygame.time.get_ticks()
             # Variables para movimiento continuo
             last_move_time = 0
-            move_delay = 150  # ms entre movimientos
+            move_delay = 333  # ms entre movimientos (3 celdas por segundo)
             move_dir = None
             anim_scale = 1.0
             anim_growing = True
@@ -256,6 +256,10 @@ def main():
                         pedido_activo = random.choice(disponibles)
                         pedido_info = pedido_activo
                         mostrar_pedido = True
+                # Actualizar clima dinámico y aplicarlo al repartidor
+                game.clima.actualizar_clima()
+                estado = game.clima.get_estado_climatico()
+                game.repartidor.aplicar_clima(estado["condicion"], estado["intensidad"])
                 # Bloqueo por resistencia baja
                 rep = game.repartidor
                 # Nueva variable para bloqueo persistente
@@ -339,6 +343,72 @@ def main():
                 # DIBUJAR MAPA Y REPARTIDOR EN surface_juego
                 draw_map(surface_juego, game.mapa, game.camara, TILE_SIZE)
                 draw_repartidor(surface_juego, game.repartidor, game.camara)
+                # Animaciones de clima visuales
+                clima = getattr(game.repartidor, 'clima_actual', None)
+                intensidad = getattr(game.repartidor, 'intensidad_clima', 0.5)
+                frame = pygame.time.get_ticks() // 16
+                if clima in ('rain', 'rain_light', 'storm'):
+                    lluvia_gotas = 60 if clima == 'rain' else 30 if clima == 'rain_light' else 120
+                    for _ in range(lluvia_gotas):
+                        x = random.randint(0, JUEGO_ANCHO)
+                        y = random.randint(0, JUEGO_ALTO)
+                        largo = random.randint(10, 18)
+                        color = (120, 180, 255)
+                        pygame.draw.line(surface_juego, color, (x, y), (x, y + largo), 2)
+                if clima == 'fog':
+                    fog = pygame.Surface((JUEGO_ANCHO, JUEGO_ALTO), pygame.SRCALPHA)
+                    alpha = int(80 + 80*intensidad + 40*math.sin(frame/40))
+                    fog.fill((200, 200, 220, alpha))
+                    surface_juego.blit(fog, (0,0))
+                if clima == 'wind':
+                    hojas = 18 + int(12*intensidad)
+                    for i in range(hojas):
+                        x = (frame*5 + i*53) % JUEGO_ANCHO
+                        y = (frame*2 + i*31 + int(20*math.sin(frame/30+i))) % JUEGO_ALTO
+                        color = (220, 220, 180)
+                        pygame.draw.ellipse(surface_juego, color, (x, y, 12, 4))
+                if clima == 'heat':
+                    heat = pygame.Surface((JUEGO_ANCHO, JUEGO_ALTO), pygame.SRCALPHA)
+                    alpha = int(60 + 60*intensidad + 30*math.sin(frame/30))
+                    heat.fill((255, 180, 80, alpha))
+                    surface_juego.blit(heat, (0,0))
+                    # Ondas de calor
+                    for i in range(8):
+                        cx = (frame*3 + i*90) % JUEGO_ANCHO
+                        cy = (frame*2 + i*60) % JUEGO_ALTO
+                        pygame.draw.arc(surface_juego, (255,200,120,120), (cx, cy, 40, 16), 0, math.pi, 2)
+                if clima == 'clouds':
+                    # Oscurecer el día con overlay gris y transición suave de luz solar
+                    overlay = pygame.Surface((JUEGO_ANCHO, JUEGO_ALTO), pygame.SRCALPHA)
+                    # Oscurecimiento base más suave
+                    base_alpha = 35 + 20*intensidad
+                    # Suavizar transición de luz con un ciclo lento
+                    luz_factor = 0.5 + 0.5*math.sin(frame/120.0)
+                    alpha = int(base_alpha + 30*(1-luz_factor))
+                    overlay.fill((60, 60, 80, alpha))
+                    surface_juego.blit(overlay, (0,0))
+                    # Luz solar difusa ocasional
+                    if luz_factor > 0.85:
+                        sol = pygame.Surface((JUEGO_ANCHO, JUEGO_ALTO), pygame.SRCALPHA)
+                        pygame.draw.circle(sol, (255, 255, 200, 30), (JUEGO_ANCHO-120, 120), 160)
+                        sol.fill((255, 255, 200, 10))
+                        surface_juego.blit(sol, (0,0))
+                if clima == 'cold':
+                    copos = 30 + int(30*intensidad)
+                    for i in range(copos):
+                        x = (frame*2 + i*37) % JUEGO_ANCHO
+                        y = (frame + i*53 + int(10*math.sin(frame/20+i))) % JUEGO_ALTO
+                        color = (230, 240, 255)
+                        pygame.draw.circle(surface_juego, color, (x, y), 3)
+                if clima == 'clear':
+                    # Simular sol brillante con overlay amarillo claro y un "halo" suave
+                    sol = pygame.Surface((JUEGO_ANCHO, JUEGO_ALTO), pygame.SRCALPHA)
+                    # Halo solar
+                    pygame.draw.circle(sol, (255, 255, 180, 60), (JUEGO_ANCHO-120, 120), 90)
+                    pygame.draw.circle(sol, (255, 255, 200, 40), (JUEGO_ANCHO-120, 120), 160)
+                    # Luz general
+                    sol.fill((255, 255, 200, 30))
+                    surface_juego.blit(sol, (0,0))
                 # Blitear surface_juego en pantalla
                 juego_x = (VENTANA_ANCHO - JUEGO_ANCHO) // 2 - 133
                 juego_y = (VENTANA_ALTO - JUEGO_ALTO) // 2 - 0 - 100 + 70
