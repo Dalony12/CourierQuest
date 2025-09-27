@@ -4,6 +4,7 @@ from backend.repartidor.repartidor import Repartidor
 from backend.pedido import Pedido
 from frontend.camara import Camara
 from backend.clima import Clima
+from backend.paquete import Paquete
 from backend.gestor_pedidos import GestorPedidos
 from frontend.hud import HUD
 from backend import APIcontroller
@@ -59,9 +60,9 @@ class Game:
         self.clima = Clima(url=None)  # Si no usás la URL directamente, podés dejarla como None
         self.clima._cargar(clima_data)
 
-        self.paquete_activo = None
         self.indice_color = 0
         self.colores_paquete = ["Rojo", "Verde", "Azul", "Amarillo", "Morado", "Celeste", "Naranja"]
+        self.paquete_activo = None
 
     
 

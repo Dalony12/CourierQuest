@@ -196,6 +196,8 @@ def main():
             mostrar_pedido = False
             pedido_info = None
             pedido_aceptado = False
+            pedido_en_curso = None
+
 
             while running:
                 dx, dy, dir = 0, 0, None
@@ -326,6 +328,19 @@ def main():
                         # Interpolación lineal
                         rep.rect.centerx = int(slide_start[0] + (slide_end[0] - slide_start[0]) * slide_progress)
                         rep.rect.centery = int(slide_start[1] + (slide_end[1] - slide_start[1]) * slide_progress)
+
+                ##############################
+                if game.paquete_activo and pedido_en_curso and not getattr(pedido_en_curso, "recogido", False):
+                    if (game.repartidor.pos_x, game.repartidor.pos_y) == tuple(game.paquete_activo.origen):
+                        rep.recoger_paquete(game.paquete_activo)
+                        pedido_en_curso.recogido = True
+                        print(f"📥 Pedido {pedido_en_curso.codigo} recogido")
+
+                if game.pedido_activo and getattr(game.pedido_activo, "recogido", False) and not getattr(game.pedido_activo, "entregado", False):
+                    if (game.repartidor.pos_x, game.repartidor.pos_y) == tuple(game.pedido_activo.dropoff):
+                        game.pedido_activo.entregado = True
+                        print(f"[DEBUG] Pedido {game.pedido_activo.id} entregado")
+                #####################
                 # Animación de pedaleo: escalar sprite mientras se mueve (más suave y natural)
                 if (move_dir and moved and not bloqueado) or sliding:
                     anim_phase += anim_speed
@@ -436,14 +451,33 @@ def main():
                     game.hud.mostrar_pedido_app(pantalla, pedido_info)
                 # Si se aceptó el pedido
                 if pedido_aceptado and pedido_info:
+                    ####################################################################
+                    # Crear paquete visual
+                    paquete = Paquete()
+                    paquete.codigo = pedido_info.id
+                    paquete.origen = tuple(pedido_info.pickup)
+                    paquete.destino = tuple(pedido_info.dropoff)
+                    paquete.peso = pedido_info.peso
+                    paquete.payout = pedido_info.payout
+                    paquete.color = random.choice(game.colores_paquete)
+
+                    # Activar paquete en el juego
+                    game.paquete_activo = paquete
+                    pedido_en_curso = pedido_info
+
+                    game.hud.dibujar_paquete_y_buzon(surface_juego, game.paquete_activo, pedido_en_curso)
+                    pantalla.blit(surface_juego, (juego_x, juego_y))
+
                     pedido_info.recogido = True
-                    game.repartidor.inventario.agregar_item(pedido_info)
+
+                    print(f"📦 Paquete creado: {paquete.codigo} | {paquete.origen} → {paquete.destino} | Color: {paquete.color}")
                     mostrar_pedido = False
                     pedido_activo = None
                     pedido_info = None
                     pedido_aceptado = False
                     pedido_timer = pygame.time.get_ticks() + random.randint(3000, 6000)
 
+########################################################################################################
                 # Contador de fin de turno en esquina superior izquierda
                 font = pygame.font.Font(None, 32)
                 cronometro_txt = f"Fin de turno: {minutos:02d}:{segundos:02d}"
@@ -463,6 +497,6 @@ def main():
             resultado_final(pantalla, game.repartidor.meta_ingresos, game.repartidor.ingresos)
             return
         game_loop_mod(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO)
- 
+
 if __name__ == "__main__":
     main()

@@ -102,6 +102,23 @@ class HUD:
                 full_path = os.path.join(hud_sprites_path, filename)
                 self.sprites[key] = pygame.image.load(full_path).convert_alpha()
 
+
+        paqutes_y_buzones_sprite_paths = [
+            os.path.join("assets", "sprites", "paquete"),
+            os.path.join("assets", "sprites", "buzon")
+        ]
+
+        self.sprites_paquete_buzon = {}
+
+        for path in paqutes_y_buzones_sprite_paths:
+            for filename in os.listdir(path):
+                if filename.endswith(".png"):
+                    key = filename[:-4].lower()  # nombre sin .png, en minúscula
+                    full_path = os.path.join(path, filename)
+                    self.sprites_paquete_buzon[key] = pygame.image.load(full_path).convert_alpha()
+                
+
+
         # Orden de dibujo: fondo HUD, GPS, cellphone, app, luego el resto como apps
         self.draw_stack = [
             'hud',
@@ -198,4 +215,51 @@ class HUD:
         if mapa and repartidor:
             self.draw_minimap(mapa, repartidor, surface)
 
+    ###########################################################################################
+    def coordenadas_a_pixeles(self, coord):
+        from core.config import TILE_SIZE
+        x, y = coord
+        return x * TILE_SIZE, y * TILE_SIZE
+
+    def celda_valida(self, coord, ancho_tiles, alto_tiles):
+        x, y = coord
+        return 0 <= x < ancho_tiles and 0 <= y < alto_tiles
+
+
+    def dibujar_paquete_y_buzon(self, surface_juego, paquete, pedido):
+        from core.config import TILE_SIZE
+        if not paquete or not pedido:
+            return
+
+        color = paquete.color
+        print(f"📦 Paquete en tile: {paquete.origen}")
+
+        # Obtener dimensiones visibles en tiles
+        ancho_tiles = surface_juego.get_width() // TILE_SIZE
+        alto_tiles = surface_juego.get_height() // TILE_SIZE
+
+        # Mostrar paquete si NO ha sido recogido
+        if not getattr(pedido, "recogido", False):
+            clave_sprite = f"paquete{color.lower()}"
+            sprite = self.sprites_paquete_buzon.get(clave_sprite)
+
+            if sprite and self.celda_valida(paquete.origen, ancho_tiles, alto_tiles):
+                x, y = self.coordenadas_a_pixeles(paquete.origen)
+                print(f"🧭 Paquete en píxeles: ({x}, {y})")
+                surface_juego.blit(sprite, (x, y))
+            else:
+                print("❌ Paquete fuera del área visible")
+
+        # Mostrar buzón si fue recogido pero NO entregado
+        if getattr(pedido, "recogido", False) and not getattr(pedido, "entregado", False):
+            clave_sprite = f"buzon{color.lower()}"
+            sprite = self.sprites_paquete_buzon.get(clave_sprite)
+
+            if sprite and self.celda_valida(paquete.destino, ancho_tiles, alto_tiles):
+                x, y = self.coordenadas_a_pixeles(paquete.destino)
+                surface_juego.blit(sprite, (x, y))
+            else:
+                print("❌ Buzón fuera del área visible")
+
+    #################################################################################################
 
