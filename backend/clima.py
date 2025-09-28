@@ -43,7 +43,7 @@ class Clima:
 
 
         except Exception as e:
-            print(f"[❌] Error al cargar clima: {e}")
+            print(f"Error al cargar clima: {e}")
 
     def _convertir_transiciones(self, transiciones_raw):
         matriz = {}
@@ -75,7 +75,7 @@ class Clima:
 
     def _siguiente_estado_markov(self, actual):
         if not self.estados:
-            print("[⚠️] Error: lista de estados climáticos vacía. No se puede aplicar Markov.")
+            print("Error: lista de estados climáticos vacía. No se puede aplicar Markov.")
             return actual  # Mantener el estado actual como fallback
 
         destinos, pesos = self.matriz_markov.get(

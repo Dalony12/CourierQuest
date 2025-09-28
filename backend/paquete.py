@@ -13,4 +13,4 @@ class Paquete:
         self.retraso = 0          
 
     def __str__(self):
-        return f"📦 Paquete {self.codigo} | {self.origen} → {self.destino} | {self.peso}kg | $ {self.payout}"
+        return f"Paquete {self.codigo} | {self.origen} → {self.destino} | {self.peso}kg | $ {self.payout}"

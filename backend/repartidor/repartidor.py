@@ -2,6 +2,8 @@ import pygame
 import math
 
 class Inventario:
+    def peso_total(self):
+        return sum(getattr(p, 'peso', 0) for p in self.items)
     def __init__(self):
         self.items = []
 
@@ -14,10 +16,6 @@ class Inventario:
     def obtener_items(self):
         return self.items
 
-    def peso_total(self):
-        return sum(p.peso for p in self.items)
-    
-    
 class Repartidor:
     def __init__(self, imagen_arriba, imagen_abajo, imagen_izq, imagen_der, escala=(50, 50), velocidad=1.5):
         self.nombre = "Lopez"
@@ -47,6 +45,44 @@ class Repartidor:
         self.mapa = None  # Se puede asignar luego con set_mapa()
         self.camara = None  # Se puede asignar luego desde Game
 
+    # ...existing methods from previous code...
+
+    def velocidad_actual(self):
+        Mpeso = max(0.8, 1 - 0.03 * self.inventario.peso_total())
+        Mrep = 1.03 if self.reputacion >= 90 else 1.0
+        Mres = 1.0 if self.estado == "Normal" else 0.8 if self.estado == "Cansado" else 0.0
+
+        celda_x = self.rect.centerx // self.rect.width
+        celda_y = self.rect.centery // self.rect.height
+        celda = self.mapa.celdas[int(celda_x)][int(celda_y)]
+        surface_weight = celda.surface_weight
+
+        multiplicadores_clima = {
+            "clear": 1.00, "clouds": 0.98, "rain_light": 0.90,
+            "rain": 0.85, "storm": 0.75, "fog": 0.88,
+            "wind": 0.92, "heat": 0.90, "cold": 0.92
+        }
+        Mclima = max(0.1, multiplicadores_clima.get(self.clima_actual, 1.0) * self.intensidad_clima)
+
+        # Reducir velocidad dentro del edificio
+        Mbuilding = 0.7 if celda.tipo == "B" else 1.0
+
+        velocidad = self.v0 * Mclima * Mpeso * Mrep * Mres * surface_weight * Mbuilding
+
+        self._velocidad_prev = round(velocidad, 2)
+
+        print(f"4e1 velocidad_actual() llamada")
+        print(f"4cd Celda actual: ({celda_x}, {celda_y}) tipo={celda.tipo}")
+        print(f"333 surface_weight aplicado: {surface_weight}")
+        print(f"4e6 Peso total: {self.inventario.peso_total()}")
+        print(f"326e0f Clima actual: {self.clima_actual} | Intensidad: {self.intensidad_clima}")
+        print(f"300 Multiplicador climático aplicado: {round(Mclima, 2)}")
+        print(f"🏢 Multiplicador edificio: {Mbuilding}")
+        print(f"eb4 Velocidad calculada: {round(velocidad, 2)}")
+
+        return round(velocidad, 2)
+        self.camara = None  # Se puede asignar luego desde Game
+
 
     def set_mapa(self, mapa):
         self.mapa = mapa
@@ -55,8 +91,25 @@ class Repartidor:
         if not self.mapa:
             return True
         if 0 <= x < self.mapa.width and 0 <= y < self.mapa.height:
-            tipo = self.mapa.celdas[x][y].tipo
-            bloqueado = self.mapa.legend.get(tipo, {}).get("blocked", False)
+            tipo_destino = self.mapa.celdas[x][y].tipo
+            tipo_actual = self.mapa.celdas[self.rect.centerx // self.rect.width][self.rect.centery // self.rect.height].tipo
+
+            # Si está dentro del edificio (B) y quiere salir a cualquier celda que no sea B o D, solo puede si pasa por D
+            if tipo_actual == "B" and tipo_destino not in ("B", "D"):
+                # Solo permitir si la celda actual es una puerta (D)
+                return False
+
+            # Permitir entrar por puertas (D)
+            if tipo_destino == "D":
+                return True
+
+            # Permitir moverse dentro del edificio
+            if tipo_destino == "B":
+                if tipo_actual in ("D", "B"):
+                    return True
+                return False
+
+            bloqueado = self.mapa.legend.get(tipo_destino, {}).get("blocked", False)
             return not bloqueado
         return False
 

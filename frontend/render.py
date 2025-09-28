@@ -10,6 +10,43 @@ def draw_map(pantalla, mapa, camara, tile_size):
                 surf_scaled, rect_scaled = camara.apply_surface(sprite, rect)
                 pantalla.blit(surf_scaled, rect_scaled)
 
+
 def draw_repartidor(pantalla, repartidor, camara):
     surf_rep, rect_rep = camara.apply_surface(repartidor.imagen_mostrar, repartidor.rect)
     pantalla.blit(surf_rep, rect_rep)
+
+def draw_paquete(pantalla, paquete, camara, tile_size, sprites):
+    if not paquete.recogido:
+        sprite = sprites.get(f"paquete{paquete.color}")
+        if sprite:
+            x, y = paquete.origen
+            rect = pygame.Rect(x * tile_size, y * tile_size, tile_size, tile_size)
+            surf_scaled, rect_scaled = camara.apply_surface(sprite, rect)
+            pantalla.blit(surf_scaled, rect_scaled)
+
+def draw_buzon(pantalla, paquete, camara, tile_size, sprites):
+    if paquete.recogido and not paquete.entregado:
+        sprite = sprites.get(f"buzon{paquete.color}")
+        if sprite:
+            x, y = paquete.destino
+            rect = pygame.Rect(x * tile_size, y * tile_size, tile_size, tile_size)
+            surf_scaled, rect_scaled = camara.apply_surface(sprite, rect)
+            pantalla.blit(surf_scaled, rect_scaled)
+
+def draw_barra_carga(pantalla, x, y, progreso, tile_size, barra_tipo=None):
+    # Dibuja una barra de carga sobre la celda (x, y)
+    ancho = tile_size
+    alto = 12
+    px, py = x, y  # Ahora x, y son coordenadas absolutas en pantalla
+    py = py - alto - 2
+    pygame.draw.rect(pantalla, (60,60,60), (px, py, ancho, alto))
+    pygame.draw.rect(pantalla, (120,220,80), (px+2, py+2, int((ancho-4)*progreso), alto-4))
+    # Texto encima de la barra
+    font = pygame.font.SysFont(None, 22)
+    texto = None
+    if barra_tipo == 'recoger':
+        texto = font.render('Recogiendo...', True, (0,0,0))
+    elif barra_tipo == 'entregar':
+        texto = font.render('Entregando...', True, (0,0,0))
+    if texto:
+        pantalla.blit(texto, (px, py-18))

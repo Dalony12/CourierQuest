@@ -232,7 +232,7 @@ class HUD:
             return
 
         color = paquete.color
-        print(f"📦 Paquete en tile: {paquete.origen}")
+        print(f"Paquete en tile: {paquete.origen}")
 
         # Obtener dimensiones visibles en tiles
         ancho_tiles = surface_juego.get_width() // TILE_SIZE
@@ -245,10 +245,10 @@ class HUD:
 
             if sprite and self.celda_valida(paquete.origen, ancho_tiles, alto_tiles):
                 x, y = self.coordenadas_a_pixeles(paquete.origen)
-                print(f"🧭 Paquete en píxeles: ({x}, {y})")
+                print(f"Paquete en píxeles: ({x}, {y})")
                 surface_juego.blit(sprite, (x, y))
             else:
-                print("❌ Paquete fuera del área visible")
+                print("Paquete fuera del área visible")
 
         # Mostrar buzón si fue recogido pero NO entregado
         if getattr(pedido, "recogido", False) and not getattr(pedido, "entregado", False):
@@ -259,7 +259,7 @@ class HUD:
                 x, y = self.coordenadas_a_pixeles(paquete.destino)
                 surface_juego.blit(sprite, (x, y))
             else:
-                print("❌ Buzón fuera del área visible")
+                print("Buzón fuera del área visible")
 
     #################################################################################################
 
