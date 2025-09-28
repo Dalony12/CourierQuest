@@ -10,12 +10,12 @@ La persistencia de datos se realiza mediante **archivos JSON, Binario**.
 ---
 
 ## 🎯 Objetivos
-§ Implementar	y	justificar	el	uso	de	estructuras	de	datos	lineales
-§ Practicar	el	manejo	de	archivos	en	múltiples	formatos (JSON,	texto,	binario)
-§ Aplicar	algoritmos	de	ordenamiento en	escenarios	reales
-§ Desarrollar	un	videojuego	con	Python	y	Arcade/Pygame/cocos2d
-§ Integrar	un	API	real y	gestionar	caché	para	trabajar	en	modo	offline
-§ Diseñar	un	bucle	de	juego	consistente	con	 reglas	cuantificables	 (clima,	 reputación,	
+- Implementar	y	justificar	el	uso	de	estructuras	de	datos	lineales
+- Practicar	el	manejo	de	archivos	en	múltiples	formatos (JSON,	texto,	binario)
+- Aplicar	algoritmos	de	ordenamiento en	escenarios	reales
+- Desarrollar	un	videojuego	con	Python	y	Arcade/Pygame/cocos2d
+- Integrar	un	API	real y	gestionar	caché	para	trabajar	en	modo	offline
+- Diseñar	un	bucle	de	juego	consistente	con	 reglas	cuantificables	 (clima,	 reputación,	
 resistencia)
 
 ---
