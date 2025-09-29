@@ -1,5 +1,6 @@
 import pygame
 import random
+from persistencia.puntajes import guardar_puntaje
 
 def loading_screen(pantalla):
     font = pygame.font.Font(None, 60)
@@ -49,6 +50,8 @@ def resultado_final(pantalla, meta_ingresos, ingresos):
     exito = ingresos >= meta_ingresos
     mensaje = "¡Meta alcanzada!" if exito else "Meta no alcanzada"
     color = (0, 255, 0) if exito else (255, 80, 80)
+    #Guuarda el puntaje en el JSON puntajes
+    guardar_puntaje(meta_ingresos, ingresos)
     while running:
         pantalla.fill((20, 20, 40))
         titulo = font.render("Fin de la jornada", True, (255, 255, 255))

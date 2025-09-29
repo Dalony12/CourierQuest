@@ -1,4 +1,6 @@
 import pygame
+from persistencia.datosJuego import cargar_desde_slot
+
 
 def main_menu():
     VENTANA_ANCHO, VENTANA_ALTO = 1024, 768
@@ -8,7 +10,7 @@ def main_menu():
     small_font = pygame.font.Font(None, 40)
     clock = pygame.time.Clock()
     selected = 0
-    opciones = ["Jugar", "Salir"]
+    opciones = ["Jugar", "Cargar Partida", "Salir"]
     running = True
     while running:
         pantalla.fill((30, 30, 30))
@@ -30,6 +32,13 @@ def main_menu():
                 if event.key == pygame.K_RETURN:
                     if opciones[selected] == "Jugar":
                         return True
+                    elif opciones[selected] == "Cargar Partida":
+                        estado = cargar_desde_slot()
+                        if estado:
+                            mostrar_mensaje_carga_exitosa(pantalla)
+                            return estado
+                        else:
+                            mostrar_mensaje_error_carga(pantalla)
                     elif opciones[selected] == "Salir":
                         pygame.quit()
                         return False
@@ -40,7 +49,7 @@ def pause_menu(pantalla):
     font = pygame.font.Font(None, 80)
     small_font = pygame.font.Font(None, 40)
     clock = pygame.time.Clock()
-    opciones = ["Continuar", "Volver al menú principal"]
+    opciones = ["Continuar", "Guardar Juego", "Salir"]
     selected = 0
     running = True
     while running:
@@ -63,7 +72,45 @@ def pause_menu(pantalla):
                 if event.key == pygame.K_RETURN:
                     if opciones[selected] == "Continuar":
                         return True
-                    elif opciones[selected] == "Volver al menú principal":
+                    elif opciones[selected] == "Guardar Juego":
+                        return "guardar"
+                    elif opciones[selected] == "Salir":
                         return False
         pygame.display.flip()
         clock.tick(60)
+
+#Muestra el Mensaje de que se guardo la partida
+def mostrar_mensaje_guardado(pantalla):
+    import pygame
+    font = pygame.font.Font(None, 40)
+    texto = font.render("Juego guardado correctamente", True, (0, 255, 0))
+    pantalla.blit(texto, (pantalla.get_width()//2 - texto.get_width()//2, 500))
+    pygame.display.flip()
+    pygame.time.wait(1000)
+
+#Muestra el Mensaje de que se cargo la partida
+def mostrar_mensaje_carga_exitosa(pantalla):
+    import pygame
+    font = pygame.font.Font(None, 40)
+    texto = font.render("Partida cargada correctamente", True, (0, 200, 255))
+    pantalla.blit(texto, (pantalla.get_width()//2 - texto.get_width()//2, 500))
+    pygame.display.flip()
+    pygame.time.wait(1000)
+
+
+#Muestra el Mensaje de que se no cargo la partida
+def mostrar_mensaje_error_carga(pantalla):
+    font = pygame.font.Font(None, 50)
+    mensaje = font.render("❌ Error al cargar la partida", True, (255, 100, 100))
+    pantalla.blit(mensaje, (pantalla.get_width()//2 - mensaje.get_width()//2, 600))
+    pygame.display.flip()
+    pygame.time.delay(2000)
+
+
+#Muestra el Mensaje de que se no guardo la partida
+def mostrar_mensaje_error_guardado(pantalla):
+    font = pygame.font.Font(None, 50)
+    mensaje = font.render("❌ Error al guardar la partida", True, (255, 100, 100))
+    pantalla.blit(mensaje, (pantalla.get_width()//2 - mensaje.get_width()//2, 600))
+    pygame.display.flip()
+    pygame.time.delay(2000)

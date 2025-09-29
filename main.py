@@ -11,22 +11,32 @@ def main():
     pantalla = pygame.display.set_mode((VENTANA_ANCHO, VENTANA_ALTO))
     pygame.display.set_caption("CourierQuest")
     # Menú principal
-    if not main_menu():
+    resultado = main_menu()
+    if resultado is False:
         return
     # Pantalla de instrucciones
-    ok, meta_ingresos = loading_screen(pantalla)
-    print(f"[DEBUG] loading_screen returned: ok={ok}, meta_ingresos={meta_ingresos}")
-    if not ok:
-        print("[DEBUG] loading_screen returned False, exiting main loop.")
-        return
+    if resultado is True:
+        ok, meta_ingresos = loading_screen(pantalla)
+        print(f"[DEBUG] loading_screen returned: ok={ok}, meta_ingresos={meta_ingresos}")
+        if not ok:
+            print("[DEBUG] loading_screen returned False, exiting main loop.")
+            return
     # Juego principal
     JUEGO_ANCHO, JUEGO_ALTO = 750, 700
     surface_juego = pygame.Surface((JUEGO_ANCHO, JUEGO_ALTO))
     game = Game(surface_juego, JUEGO_ANCHO, JUEGO_ALTO)
-    game.repartidor.meta_ingresos = meta_ingresos
+    # Restaurar estado si se cargó partida
+    if isinstance(resultado, dict):
+        game.cargar_estado(resultado)
+        print("[DEBUG] Estado restaurado desde slot.")
+    else:
+        game.repartidor.meta_ingresos = meta_ingresos
+        print("[DEBUG] Partida nueva iniciada.")
+
     print("[DEBUG] Entrando a game_loop...")
     game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO)
     print("[DEBUG] Salió de game_loop.")
+
 
 if __name__ == "__main__":
     main()

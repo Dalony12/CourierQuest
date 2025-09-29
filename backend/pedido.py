@@ -23,7 +23,7 @@ class Pedido:
             self.dropoff = data.get("dropoff", [])
             self.payout = data.get("payout")
             self.deadline = datetime.fromisoformat(data.get("deadline")) if data.get("deadline") else None
-            self.peso = data.get("weight")
+            self.peso = data.get("peso") or data.get("weight") or 0.
             self.priority = data.get("priority")
             self.release_time = data.get("release_time")
         except Exception as e:

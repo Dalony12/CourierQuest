@@ -5,6 +5,8 @@ from backend.paquete import Paquete
 import random, math
 from core.menu import pause_menu
 from core.screens import resultado_final
+from persistencia.datosJuego import guardar_en_slot
+from core.menu import mostrar_mensaje_guardado, mostrar_mensaje_error_guardado
 
 def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     print("[DEBUG] game_loop iniciado.")
@@ -12,7 +14,10 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     running = True
     paused = False
     tiempo_jornada = 10 * 60  # 10 minutos en segundos
-    tiempo_inicio = pygame.time.get_ticks()
+    if hasattr(game, "tiempo_restaurado"):
+        tiempo_inicio = pygame.time.get_ticks() - (tiempo_jornada - game.tiempo_restaurado) * 1000
+    else:
+        tiempo_inicio = pygame.time.get_ticks()
     last_move_time = 0
     move_delay = 148  # ms entre movimientos (3 celdas por segundo)
     move_dir = None
@@ -43,6 +48,11 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         dx, dy, dir = 0, 0, None
         moved = False
         current_time = pygame.time.get_ticks()
+        # Verificar si se cumplió la meta de ingresos
+        if game.repartidor.ingresos >= game.repartidor.meta_ingresos:
+            resultado_final(pantalla, game.repartidor.meta_ingresos, game.repartidor.ingresos)
+            running = False
+            continue  # Salta el resto del loop
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 running = False
@@ -222,10 +232,20 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
             rep.descansar()
             rep._actualizar_estado()
         game.camara.update(rep.rect)
+        #GUARDAR EL JUEGO
         if paused:
-            if not pause_menu(pantalla):
-                return
+            resultado = pause_menu(pantalla)
+            if resultado == "guardar":
+                    estado = game.generar_estado_actual(tiempo_restante)
+                    exito = guardar_en_slot(estado)
+                    if exito:
+                        mostrar_mensaje_guardado(pantalla)
+                    else:
+                        mostrar_mensaje_error_guardado(pantalla)
+            elif resultado is False:
+                    return
             paused = False
+        # Cronómetro de jornada laboral
         tiempo_actual = (pygame.time.get_ticks() - tiempo_inicio) // 1000
         tiempo_restante = max(0, tiempo_jornada - tiempo_actual)
         minutos = tiempo_restante // 60
