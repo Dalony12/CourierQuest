@@ -3,31 +3,37 @@ import time
 import os
 
 class HUD:
-    def mostrar_pedido_app(self, pantalla, pedido):
-        # Dibuja la info del pedido alineada con los iconos del app.png
+
+    def mostrar_info_pedido(self, pantalla, pedido):
         app_pos = self.sprite_positions['app']
-        app_sprite = self.sprites['app']
-        app_rect = pygame.Rect(app_pos, app_sprite.get_size())
-        font = pygame.font.Font(None, 22)
-        # Posiciones de los iconos (ajustadas según el png adjunto)
-        icon_y = [app_pos[1]+8, app_pos[1]+38, app_pos[1]+68, app_pos[1]+98]
-        icon_x = app_pos[0]+8
-        text_x = icon_x + 32  # texto a la derecha del icono
-        # Texto en negro y alineado
-        txt1 = font.render(f"{pedido.pickup} / {pedido.dropoff}", True, (0,0,0))
-        txt2 = font.render(f"{pedido.peso}", True, (0,0,0))
-        txt3 = font.render(f"${pedido.payout}", True, (0,0,0))
-        txt4 = font.render(f"{pedido.deadline.strftime('%H:%M') if pedido.deadline else '-'}", True, (0,0,0))
-        pantalla.blit(txt1, (text_x, icon_y[0]))
-        pantalla.blit(txt2, (text_x, icon_y[1]))
-        pantalla.blit(txt3, (text_x, icon_y[2]))
-        pantalla.blit(txt4, (text_x, icon_y[3]))
-        # Botón aceptar
-        btn_pos = self.sprite_positions['btnAceptar']
-        pantalla.blit(self.sprites['btnAceptar'], btn_pos)
-        # Botón rechazar
-        btnr_pos = self.sprite_positions['btnRechazar']
-        pantalla.blit(self.sprites['btnRechazar'], btnr_pos)
+        app_x, app_y = app_pos
+        app_sprite = self.sprites.get('app')
+        if app_sprite:
+            app_w = app_sprite.get_width()
+            app_h = app_sprite.get_height()
+        else:
+            app_w = 50  # default width fallback
+            app_h = 50
+        font = pygame.font.Font(None, 20)  # fuente pequeña
+        line_height = 25  # más espacio entre líneas
+        # Info en orden: "Nuevo Pedido", peso Kg, $dinero, tiempo
+        lines = [
+            "Nuevo Pedido",
+            f"{pedido.peso} Kg",
+            f"${pedido.payout}",
+            f"{pedido.deadline.strftime('%H:%M') if pedido.deadline else '-'}"
+        ]
+        # Calcular el ancho máximo de las líneas para centrar
+        max_width = max(font.size(line)[0] for line in lines)
+        # Posición inicial centrada en el app
+        start_y = app_y + (app_h - len(lines) * line_height) // 2 - 10
+        for i, line in enumerate(lines):
+            text = font.render(line, True, (0, 0, 0))  # color negro
+            text_w = text.get_width()
+            text_x = app_x + (app_w - text_w) // 2
+            text_y = start_y + i * line_height
+            pantalla.blit(text, (text_x, text_y))
+
     def draw_minimap(self, mapa, repartidor, surface=None):
         """Genera el minimapa usando el renderizado real del juego, expandido y centrado dentro del GPS."""
         import pygame

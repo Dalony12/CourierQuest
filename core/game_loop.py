@@ -21,22 +21,19 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     last_move_time = 0
     move_delay = 148  # ms entre movimientos (3 celdas por segundo)
     move_dir = None
-    anim_scale = 1.0
-    anim_growing = True
     active_dirs = set()
     anim_phase = 0.0
     anim_speed = 0.12
+    anim_offset_y = 0.0
     sliding = False
     slide_start = None
     slide_end = None
     slide_progress = 0.0
     rep = game.repartidor
-    pedido_activo = None
     pedido_timer = pygame.time.get_ticks() + random.randint(3000, 6000)
     mostrar_pedido = False
     pedido_info = None
     pedido_aceptado = False
-    pedido_en_curso = None
     barra_carga = None
     barra_tipo = None  # 'recoger' o 'entregar'
     barra_inicio = None
@@ -61,7 +58,6 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     pedido_aceptado = True
                 elif evento.key == pygame.K_n:
                     mostrar_pedido = False
-                    pedido_activo = None
                     pedido_info = None
                     pedido_timer = pygame.time.get_ticks() + random.randint(3000, 6000)
             if mostrar_pedido and evento.type == pygame.MOUSEBUTTONDOWN:
@@ -72,7 +68,6 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     pedido_aceptado = True
                 elif btnr_rect.collidepoint(mx, my):
                     mostrar_pedido = False
-                    pedido_activo = None
                     pedido_info = None
                     pedido_timer = pygame.time.get_ticks() + random.randint(3000, 6000)
             if evento.type == pygame.KEYDOWN:
@@ -84,6 +79,9 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     active_dirs.add("izq")
                 elif evento.key == pygame.K_RIGHT:
                     active_dirs.add("der")
+                elif evento.key == pygame.K_TAB:
+                    if game.active_paquetes:
+                        game.current_focus = (game.current_focus + 1) % len(game.active_paquetes)
             if evento.type == pygame.KEYUP:
                 if evento.key == pygame.K_UP:
                     active_dirs.discard("arriba")
@@ -93,15 +91,15 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     active_dirs.discard("izq")
                 elif evento.key == pygame.K_RIGHT:
                     active_dirs.discard("der")
+        game.paquete_activo = game.active_paquetes[game.current_focus] if game.active_paquetes else None
         if active_dirs:
             move_dir = list(active_dirs)[-1]
         else:
             move_dir = None
-        if not pedido_activo and not mostrar_pedido and pygame.time.get_ticks() > pedido_timer:
+        if not mostrar_pedido and pygame.time.get_ticks() > pedido_timer:
             disponibles = game.gestor_pedidos.obtener_disponibles(pygame.time.get_ticks() // 1000)
             if disponibles:
-                pedido_activo = random.choice(disponibles)
-                pedido_info = pedido_activo
+                pedido_info = random.choice(disponibles)
                 mostrar_pedido = True
         game.clima.actualizar_clima()
         estado = game.clima.get_estado_climatico()
@@ -143,7 +141,7 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                 slide_progress = 0.0
                 sliding = True
                 rep.direccion = dir
-                rep.imagen_mostrar = rep.sprites[dir]
+                rep._actualizar_sprite()
                 rep._consumir_energia()
                 rep._actualizar_estado()
                 moved = True
@@ -167,12 +165,12 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         # Normalizar color para acceder a los sprites
         def color_key(base, color):
             return f"{base}{color.lower()}"
-        # Dibuja paquete y buzón
-        if paquete:
-            paquete_sprite_key = color_key("paquete", paquete.color)
-            buzon_sprite_key = color_key("buzon", paquete.color)
-            draw_paquete(surface_juego, paquete, game.camara, tile_size, {paquete_sprite_key: sprites_pb.get(paquete_sprite_key)})
-            draw_buzon(surface_juego, paquete, game.camara, tile_size, {buzon_sprite_key: sprites_pb.get(buzon_sprite_key)})
+        # Dibuja paquete y buzón para todos los paquetes activos
+        for p in game.active_paquetes:
+            paquete_sprite_key = color_key("paquete", p.color)
+            buzon_sprite_key = color_key("buzon", p.color)
+            draw_paquete(surface_juego, p, game.camara, tile_size, {paquete_sprite_key: sprites_pb.get(paquete_sprite_key)})
+            draw_buzon(surface_juego, p, game.camara, tile_size, {buzon_sprite_key: sprites_pb.get(buzon_sprite_key)})
         # Detectar si repartidor está EN la celda del paquete para recoger
         if paquete and not paquete.recogido:
             px, py = paquete.origen
@@ -209,9 +207,11 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                 # Solo completa la acción si sigue en la celda correcta
                 if progreso >= 1.0 and rx == bx and ry == by:
                     paquete.entregado = True
-                    payout = getattr(pedido_en_curso, 'payout', 100)
-                    dinero += payout
-                    game.repartidor.ingresos = dinero
+                    game.repartidor.ingresos += paquete.payout
+                    # Remove from active lists
+                    index = game.active_paquetes.index(paquete)
+                    del game.active_orders[index]
+                    del game.active_paquetes[index]
                     barra_carga = None
                     barra_tipo = None
                     barra_inicio = None
@@ -221,15 +221,10 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     barra_inicio = None
         if (move_dir and moved and not bloqueado) or sliding:
             anim_phase += anim_speed
-            anim_scale = 1.0 + 0.18 * math.sin(anim_phase)
-            base_img = rep.sprites[rep.direccion]
-            w, h = base_img.get_width(), base_img.get_height()
-            new_img = pygame.transform.scale(base_img, (int(w * anim_scale), int(h * anim_scale)))
-            rep.imagen_mostrar = new_img
+            anim_offset_y = 3 * math.sin(anim_phase)
         else:
-            anim_phase = 0.0
-            anim_scale = 1.0
-            rep.imagen_mostrar = rep.sprites[rep.direccion]
+            anim_offset_y = 0.0
+            rep._actualizar_sprite()
         if (not move_dir or bloqueado) and not sliding:
             rep.descansar()
             rep._actualizar_estado()
@@ -255,7 +250,7 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         pantalla.fill((0, 0, 0))
         surface_juego.fill((0, 0, 0))
         draw_map(surface_juego, game.mapa, game.camara, TILE_SIZE)
-        draw_repartidor(surface_juego, game.repartidor, game.camara)
+        draw_repartidor(surface_juego, game.repartidor, game.camara, anim_offset_y)
         # Animaciones de clima visuales (puedes modularizar si lo prefieres)
         # ... (puedes copiar la lógica de clima visual aquí)
         # --- Renderizar paquete, buzón y barra de carga arriba de todo ---
@@ -265,11 +260,12 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         tile_size = TILE_SIZE
         def color_key(base, color):
             return f"{base}{color.lower()}"
-        if paquete:
-            paquete_sprite_key = color_key("paquete", paquete.color)
-            buzon_sprite_key = color_key("buzon", paquete.color)
-            draw_paquete(surface_juego, paquete, game.camara, tile_size, {paquete_sprite_key: sprites_pb.get(paquete_sprite_key)})
-            draw_buzon(surface_juego, paquete, game.camara, tile_size, {buzon_sprite_key: sprites_pb.get(buzon_sprite_key)})
+        # Dibuja paquete y buzón para todos los paquetes activos (redundante pero para consistencia)
+        for p in game.active_paquetes:
+            paquete_sprite_key = color_key("paquete", p.color)
+            buzon_sprite_key = color_key("buzon", p.color)
+            draw_paquete(surface_juego, p, game.camara, tile_size, {paquete_sprite_key: sprites_pb.get(paquete_sprite_key)})
+            draw_buzon(surface_juego, p, game.camara, tile_size, {buzon_sprite_key: sprites_pb.get(buzon_sprite_key)})
         # Barra de carga (si corresponde) SIEMPRE por encima de todo, sobre pantalla principal
         if paquete and not paquete.recogido and barra_carga is not None:
             px, py = paquete.origen
@@ -293,7 +289,7 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         game.hud.draw(pantalla)
         game.hud.draw_minimap(game.mapa, game.repartidor, pantalla)
         if mostrar_pedido and pedido_info:
-            game.hud.mostrar_pedido_app(pantalla, pedido_info)
+            game.hud.mostrar_info_pedido(pantalla, pedido_info)
         if pedido_aceptado and pedido_info:
             paquete = Paquete()
             paquete.codigo = pedido_info.id
@@ -301,13 +297,17 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
             paquete.destino = tuple(pedido_info.dropoff)
             paquete.peso = pedido_info.peso
             paquete.payout = pedido_info.payout
-            paquete.color = random.choice(game.colores_paquete).lower()
-            game.paquete_activo = paquete
-            pedido_en_curso = pedido_info
-            # El renderizado de paquete y buzón ahora se hace solo con las funciones draw_paquete/draw_buzon
+            # Assign unique color
+            used_colors = {p.color for p in game.active_paquetes}
+            available_colors = [c.lower() for c in game.colores_paquete if c.lower() not in used_colors]
+            if available_colors:
+                paquete.color = random.choice(available_colors)
+            else:
+                paquete.color = random.choice(game.colores_paquete).lower()  # fallback if all colors used
+            game.active_orders.append(pedido_info)
+            game.active_paquetes.append(paquete)
             pedido_info.recogido = True
             mostrar_pedido = False
-            pedido_activo = None
             pedido_info = None
             pedido_aceptado = False
             pedido_timer = pygame.time.get_ticks() + random.randint(3000, 6000)

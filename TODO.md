@@ -1,0 +1,6 @@
+- [x] Modificar Game class para usar lista de pedidos activos (active_orders) en lugar de pedido_activo
+- [x] Actualizar inicialización y métodos de estado en Game
+- [x] Modificar game_loop para manejar múltiples pedidos activos, permitir aceptación múltiple y foco en uno
+- [ ] Actualizar HUD para mostrar lista de pedidos activos y botones de navegación
+- [x] Asegurar lógica de pickup/delivery para el pedido enfocado
+- [x] Probar cambios

@@ -1,6 +1,6 @@
 import pygame
 
-TILE_SIZE = 20
+TILE_SIZE = 50
 
 class Celda:
     def __init__(self, tipo, x, y, legend):

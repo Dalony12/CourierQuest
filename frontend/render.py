@@ -11,8 +11,10 @@ def draw_map(pantalla, mapa, camara, tile_size):
                 pantalla.blit(surf_scaled, rect_scaled)
 
 
-def draw_repartidor(pantalla, repartidor, camara):
-    surf_rep, rect_rep = camara.apply_surface(repartidor.imagen_mostrar, repartidor.rect)
+def draw_repartidor(pantalla, repartidor, camara, offset_y=0):
+    rect_rep = repartidor.rect.copy()
+    rect_rep.y += offset_y
+    surf_rep, rect_rep = camara.apply_surface(repartidor.imagen_mostrar, rect_rep)
     pantalla.blit(surf_rep, rect_rep)
 
 def draw_paquete(pantalla, paquete, camara, tile_size, sprites):

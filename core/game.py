@@ -60,7 +60,9 @@ class Game:
         self.clima = Clima(url=None)  # Si no usás la URL directamente, podés dejarla como None
         self.clima._cargar(clima_data)
 
-        self.pedido_activo = None
+        self.active_orders = []  # Lista de pedidos activos
+        self.active_paquetes = []  # Lista de paquetes activos, paralela a active_orders
+        self.current_focus = 0  # Índice del pedido enfocado
         self.indice_color = 0
         self.colores_paquete = ["Rojo", "Verde", "Azul", "Amarillo", "Morado", "Celeste", "Naranja"]
         self.paquete_activo = None
@@ -83,6 +85,7 @@ class Game:
                 "clima_actual": repartidor.clima_actual,
                 "intensidad_clima": repartidor.intensidad_clima,
                 "peso_maximo": repartidor.pesoMaximo,
+                "dentro_edificio": repartidor.dentro_edificio,
                 "inventario": [
                     {
                         "codigo": p.codigo,
@@ -130,6 +133,23 @@ class Game:
                 "tiles_raw": mapa.tiles_raw,
                 "legend": mapa.legend
             },
+            "active_orders": [p.id for p in self.active_orders],
+            "active_paquetes": [
+                {
+                    "codigo": p.codigo,
+                    "origen": p.origen,
+                    "destino": p.destino,
+                    "peso": p.peso,
+                    "payout": p.payout,
+                    "color": p.color,
+                    "recogido": p.recogido,
+                    "entregado": p.entregado,
+                    "tiempo_inicio": p.tiempo_inicio,
+                    "tiempo_limite": p.tiempo_limite,
+                    "retraso": p.retraso
+                } for p in self.active_paquetes
+            ],
+            "current_focus": self.current_focus,
             "tiempo_restante": tiempo_restante,
     }
     
@@ -142,6 +162,7 @@ class Game:
         self.repartidor.pos_x, self.repartidor.pos_y = rep_data["posicion"]
         self.repartidor.rect = self.repartidor.sprites["abajo"].get_rect()
         self.repartidor.rect.topleft = (self.repartidor.pos_x * TILE_SIZE, self.repartidor.pos_y * TILE_SIZE)
+        self.repartidor._actualizar_sprite()
         self.repartidor.meta_ingresos = rep_data["meta_ingresos"]
         self.repartidor.ingresos = rep_data["ingresos"]
         self.repartidor.resistencia = rep_data["resistencia"]
@@ -151,6 +172,7 @@ class Game:
         self.repartidor.intensidad_clima = rep_data["intensidad_clima"]
         self.repartidor.v0 = 1.5
         self.repartidor.pesoMaximo = rep_data["peso_maximo"]
+        self.repartidor.dentro_edificio = rep_data.get("dentro_edificio", False)
 
         # Reconstruir inventario con Paquetes
         self.repartidor.inventario.items = []  # o el atributo correcto si es distinto
@@ -177,6 +199,28 @@ class Game:
             pedido.recogido = p["recogido"]
             pedido.entregado = p["entregado"]
             self.gestor_pedidos.pedidos.append(pedido)
+
+        # Restaurar active_orders y current_focus
+        active_ids = estado.get("active_orders", [])
+        self.active_orders = [p for p in self.gestor_pedidos.pedidos if p.id in active_ids]
+        self.current_focus = estado.get("current_focus", 0)
+
+        # Restaurar active_paquetes
+        self.active_paquetes = []
+        for p_data in estado.get("active_paquetes", []):
+            paquete = Paquete()
+            paquete.codigo = p_data["codigo"]
+            paquete.origen = p_data["origen"]
+            paquete.destino = p_data["destino"]
+            paquete.peso = p_data["peso"]
+            paquete.payout = p_data["payout"]
+            paquete.color = p_data["color"]
+            paquete.recogido = p_data["recogido"]
+            paquete.entregado = p_data["entregado"]
+            paquete.tiempo_inicio = p_data["tiempo_inicio"]
+            paquete.tiempo_limite = p_data["tiempo_limite"]
+            paquete.retraso = p_data["retraso"]
+            self.active_paquetes.append(paquete)
             
         # Restaurar clima
         clima_data = estado["clima"]

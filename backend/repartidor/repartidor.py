@@ -1,20 +1,6 @@
 import pygame
 import math
-
-class Inventario:
-    def peso_total(self):
-        return sum(getattr(p, 'peso', 0) for p in self.items)
-    def __init__(self):
-        self.items = []
-
-    def agregar_item(self, item):
-        self.items.append(item)
-
-    def eliminar_item(self, item):
-        self.items.remove(item)
-
-    def obtener_items(self):
-        return self.items
+from backend.repartidor.inventario import Inventario
 
 class Repartidor:
     def __init__(self, imagen_arriba, imagen_abajo, imagen_izq, imagen_der, escala=(50, 50), velocidad=1.5):
@@ -36,53 +22,16 @@ class Repartidor:
             "arriba": pygame.transform.scale(pygame.image.load(imagen_arriba).convert_alpha(), escala),
             "abajo": pygame.transform.scale(pygame.image.load(imagen_abajo).convert_alpha(), escala),
             "izq": pygame.transform.scale(pygame.image.load(imagen_izq).convert_alpha(), escala),
-            "der": pygame.transform.scale(pygame.image.load(imagen_der).convert_alpha(), escala)
+            "der": pygame.transform.scale(pygame.image.load(imagen_der).convert_alpha(), escala),
+            "personaje": pygame.transform.scale(pygame.image.load("assets/sprites/repartidor/personaje.png").convert_alpha(), escala)
         }
         self.rect = self.sprites["abajo"].get_rect(center=(0, 0))
         self.direccion = "abajo"
         self.imagen_mostrar = self.sprites[self.direccion]
+        self.dentro_edificio = False  # Flag para saber si está dentro del edificio
 
         self.mapa = None  # Se puede asignar luego con set_mapa()
         self.camara = None  # Se puede asignar luego desde Game
-
-    # ...existing methods from previous code...
-
-    def velocidad_actual(self):
-        Mpeso = max(0.8, 1 - 0.03 * self.inventario.peso_total())
-        Mrep = 1.03 if self.reputacion >= 90 else 1.0
-        Mres = 1.0 if self.estado == "Normal" else 0.8 if self.estado == "Cansado" else 0.0
-
-        celda_x = self.rect.centerx // self.rect.width
-        celda_y = self.rect.centery // self.rect.height
-        celda = self.mapa.celdas[int(celda_x)][int(celda_y)]
-        surface_weight = celda.surface_weight
-
-        multiplicadores_clima = {
-            "clear": 1.00, "clouds": 0.98, "rain_light": 0.90,
-            "rain": 0.85, "storm": 0.75, "fog": 0.88,
-            "wind": 0.92, "heat": 0.90, "cold": 0.92
-        }
-        Mclima = max(0.1, multiplicadores_clima.get(self.clima_actual, 1.0) * self.intensidad_clima)
-
-        # Reducir velocidad dentro del edificio
-        Mbuilding = 0.7 if celda.tipo == "B" else 1.0
-
-        velocidad = self.v0 * Mclima * Mpeso * Mrep * Mres * surface_weight * Mbuilding
-
-        self._velocidad_prev = round(velocidad, 2)
-
-        print(f"4e1 velocidad_actual() llamada")
-        print(f"4cd Celda actual: ({celda_x}, {celda_y}) tipo={celda.tipo}")
-        print(f"333 surface_weight aplicado: {surface_weight}")
-        print(f"4e6 Peso total: {self.inventario.peso_total()}")
-        print(f"326e0f Clima actual: {self.clima_actual} | Intensidad: {self.intensidad_clima}")
-        print(f"300 Multiplicador climático aplicado: {round(Mclima, 2)}")
-        print(f"🏢 Multiplicador edificio: {Mbuilding}")
-        print(f"eb4 Velocidad calculada: {round(velocidad, 2)}")
-
-        return round(velocidad, 2)
-        self.camara = None  # Se puede asignar luego desde Game
-
 
     def set_mapa(self, mapa):
         self.mapa = mapa
@@ -122,6 +71,21 @@ class Repartidor:
         else:
             self.estado = "Normal"
 
+    def _actualizar_sprite(self):
+        if not self.mapa:
+            return
+        celda_x = self.rect.centerx // self.rect.width
+        celda_y = self.rect.centery // self.rect.height
+        if 0 <= celda_x < self.mapa.width and 0 <= celda_y < self.mapa.height:
+            tipo_actual = self.mapa.celdas[int(celda_x)][int(celda_y)].tipo
+            if tipo_actual == "B":
+                self.dentro_edificio = True
+                self.imagen_mostrar = self.sprites["personaje"]
+            elif tipo_actual in ("P", "C"):
+                self.dentro_edificio = False
+                self.imagen_mostrar = self.sprites[self.direccion]
+            # Para otros tipos (como D), mantener el sprite actual
+
     def _consumir_energia(self):
         base = 0.5
         exceso = max(0, self.inventario.peso_total() - 3)
@@ -151,25 +115,13 @@ class Repartidor:
         }
         Mclima = max(0.1, multiplicadores_clima.get(self.clima_actual, 1.0) * self.intensidad_clima)
 
-
         velocidad = self.v0 * Mclima * Mpeso * Mrep * Mres * surface_weight
-        
-        self._velocidad_prev = round(velocidad, 2)
-
-        print(f"📡 velocidad_actual() llamada")
-        print(f"📍 Celda actual: ({celda_x}, {celda_y}) tipo={celda.tipo}")
-        print(f"🌳 surface_weight aplicado: {surface_weight}")
-        print(f"📦 Peso total: {self.inventario.peso_total()}")
-        print(f"🌦️ Clima actual: {self.clima_actual} | Intensidad: {self.intensidad_clima}")
-        print(f"🌀 Multiplicador climático aplicado: {round(Mclima, 2)}")
-        print(f"🚴 Velocidad calculada: {round(velocidad, 2)}")
 
         return round(velocidad, 2)
 
 
 
     def mover(self, limites):
-        print("🕹️ mover() fue llamado")
         teclas = pygame.key.get_pressed()
         dx, dy = 0, 0
 
@@ -234,17 +186,17 @@ class Repartidor:
         self.rect.centerx = max(half_w, min(self.rect.centerx, area_visible_w - half_w))
         self.rect.centery = max(half_h, min(self.rect.centery, area_visible_h - half_h))
 
-        self.imagen_mostrar = self.sprites[self.direccion]
+        self._actualizar_sprite()
 
 
     def recoger_paquete(self, paquete):
         if self.inventario.peso_total() + paquete.peso <= self.pesoMaximo:
-            self.inventario.agregar_item(paquete)
+            self.inventario.agregar(paquete)
             return True
         return False
 
     def entregar_paquete(self, paquete):
-        self.inventario.eliminar_item(paquete)
+        self.inventario.eliminar(paquete)
         self.ingresos += paquete.pago
         self._actualizar_reputacion(paquete)
 
