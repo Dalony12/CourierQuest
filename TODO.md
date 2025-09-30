@@ -1,6 +1,11 @@
-- [x] Modificar Game class para usar lista de pedidos activos (active_orders) en lugar de pedido_activo
-- [x] Actualizar inicialización y métodos de estado en Game
-- [x] Modificar game_loop para manejar múltiples pedidos activos, permitir aceptación múltiple y foco en uno
-- [ ] Actualizar HUD para mostrar lista de pedidos activos y botones de navegación
-- [x] Asegurar lógica de pickup/delivery para el pedido enfocado
-- [x] Probar cambios
+- [x] Add color_map to HUD.__init__
+- [x] Modify draw_minimap in HUD to accept active_paquetes and draw circles for packages
+- [x] Modify call to draw_minimap in game_loop.py to pass game.active_paquetes
+- [x] Test the game to verify points appear on minimap
+- [x] Modify draw_minimap to accept active_paquete and draw line to it
+- [x] Modify HUD.draw to pass game.paquete_activo
+- [x] Modify call in game_loop to pass game.paquete_activo
+- [x] Test the path drawing
+- [x] Implement pathfinding to find path from repartidor to package
+- [x] Modify draw_minimap to draw colored cells along the path instead of straight line
+- [x] Test the path coloring

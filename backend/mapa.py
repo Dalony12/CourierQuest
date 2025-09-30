@@ -1,6 +1,7 @@
 import random
 import pygame
 from backend.celda import Celda
+from collections import deque
 
 TILE_SIZE = 50  # Ajuste final para que el ciclista se vea grande
 
@@ -134,6 +135,27 @@ class Mapa:
                 if sprite:
                     rect = pygame.Rect(col * TILE_SIZE, fila * TILE_SIZE, TILE_SIZE, TILE_SIZE)
                     screen.blit(sprite, rect)
+
+    def find_path(self, start_x, start_y, end_x, end_y):
+        """Encuentra el camino más corto usando BFS."""
+        if not (0 <= start_x < self.width and 0 <= start_y < self.height and 0 <= end_x < self.width and 0 <= end_y < self.height):
+            return []
+        queue = deque([(start_x, start_y, [])])
+        visited = set()
+        visited.add((start_x, start_y))
+        while queue:
+            x, y, path = queue.popleft()
+            if (x, y) == (end_x, end_y):
+                return path + [(x, y)]
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < self.width and 0 <= ny < self.height and (nx, ny) not in visited:
+                    tipo = self.celdas[nx][ny].tipo
+                    # Permitir movimiento a celdas no bloqueadas
+                    if not self.legend.get(tipo, {}).get("blocked", False):
+                        visited.add((nx, ny))
+                        queue.append((nx, ny, path + [(x, y)]))
+        return []
 
     def __str__(self):
         return f"Mapa: {self.city_name} ({self.width}x{self.height})"

@@ -171,6 +171,71 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
             buzon_sprite_key = color_key("buzon", p.color)
             draw_paquete(surface_juego, p, game.camara, tile_size, {paquete_sprite_key: sprites_pb.get(paquete_sprite_key)})
             draw_buzon(surface_juego, p, game.camara, tile_size, {buzon_sprite_key: sprites_pb.get(buzon_sprite_key)})
+
+        # DIBUJAR RUTA GPS ENTRE REPARTIDOR Y PAQUETE O BUZON
+        if paquete:
+            start_x = game.repartidor.rect.centerx // tile_size
+            start_y = game.repartidor.rect.centery // tile_size
+            # Determinar destino: origen si no recogido, destino si recogido
+            if not paquete.recogido:
+                end_x, end_y = paquete.origen
+                # Para ruta, pasar por puerta del edificio si origen está dentro de edificio
+                if game.mapa.celdas[end_x][end_y].tipo == "B":
+                    # Buscar puerta más cercana al origen dentro del edificio
+                    puerta = None
+                    for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
+                        nx, ny = end_x + dx, end_y + dy
+                        if 0 <= nx < game.mapa.width and 0 <= ny < game.mapa.height:
+                            if game.mapa.celdas[nx][ny].tipo == "D":
+                                puerta = (nx, ny)
+                                break
+                    if puerta:
+                        # Calcular ruta desde repartidor a puerta y luego puerta a origen
+                        ruta1 = game.mapa.find_path(start_x, start_y, puerta[0], puerta[1])
+                        ruta2 = game.mapa.find_path(puerta[0], puerta[1], end_x, end_y)
+                        ruta = ruta1 + ruta2
+                    else:
+                        ruta = game.mapa.find_path(start_x, start_y, end_x, end_y)
+                else:
+                    ruta = game.mapa.find_path(start_x, start_y, end_x, end_y)
+            else:
+                end_x, end_y = paquete.destino
+                # Para ruta, pasar por puerta del edificio si destino está dentro de edificio
+                if game.mapa.celdas[end_x][end_y].tipo == "B":
+                    puerta = None
+                    for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
+                        nx, ny = end_x + dx, end_y + dy
+                        if 0 <= nx < game.mapa.width and 0 <= ny < game.mapa.height:
+                            if game.mapa.celdas[nx][ny].tipo == "D":
+                                puerta = (nx, ny)
+                                break
+                    if puerta:
+                        ruta1 = game.mapa.find_path(start_x, start_y, puerta[0], puerta[1])
+                        ruta2 = game.mapa.find_path(puerta[0], puerta[1], end_x, end_y)
+                        ruta = ruta1 + ruta2
+                    else:
+                        ruta = game.mapa.find_path(start_x, start_y, end_x, end_y)
+                else:
+                    ruta = game.mapa.find_path(start_x, start_y, end_x, end_y)
+
+            # Dibujar ruta en surface_juego con color correspondiente al paquete
+            if ruta:
+                color_map = {
+                    "rojo": (255, 0, 0),
+                    "verde": (0, 255, 0),
+                    "azul": (0, 0, 255),
+                    "amarillo": (255, 255, 0),
+                    "morado": (128, 0, 128),
+                    "celeste": (0, 255, 255),
+                    "naranja": (255, 165, 0)
+                }
+                color = color_map.get(paquete.color.lower(), (255, 255, 255))
+                for i in range(len(ruta) - 1):
+                    x1, y1 = ruta[i]
+                    x2, y2 = ruta[i+1]
+                    start_pos = (x1 * tile_size + tile_size // 2, y1 * tile_size + tile_size // 2)
+                    end_pos = (x2 * tile_size + tile_size // 2, y2 * tile_size + tile_size // 2)
+                    pygame.draw.line(surface_juego, color, start_pos, end_pos, 5)
         # Detectar si repartidor está EN la celda del paquete para recoger
         if paquete and not paquete.recogido:
             px, py = paquete.origen
@@ -249,8 +314,9 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         segundos = tiempo_restante % 60
         pantalla.fill((0, 0, 0))
         surface_juego.fill((0, 0, 0))
+        is_moving = sliding
         draw_map(surface_juego, game.mapa, game.camara, TILE_SIZE)
-        draw_repartidor(surface_juego, game.repartidor, game.camara, anim_offset_y)
+        draw_repartidor(surface_juego, game.repartidor, game.camara, anim_offset_y, is_moving)
         # Animaciones de clima visuales (puedes modularizar si lo prefieres)
         # ... (puedes copiar la lógica de clima visual aquí)
         # --- Renderizar paquete, buzón y barra de carga arriba de todo ---
@@ -286,8 +352,7 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         juego_x = (pantalla.get_width() - JUEGO_ANCHO) // 2 - 133
         juego_y = (pantalla.get_height() - JUEGO_ALTO) // 2 - 0 - 100 + 70
         pantalla.blit(surface_juego, (juego_x, juego_y))
-        game.hud.draw(pantalla)
-        game.hud.draw_minimap(game.mapa, game.repartidor, pantalla)
+        game.hud.draw(pantalla, game.mapa, game.repartidor, game.active_paquetes, game.paquete_activo)
         if mostrar_pedido and pedido_info:
             game.hud.mostrar_info_pedido(pantalla, pedido_info)
         if pedido_aceptado and pedido_info:

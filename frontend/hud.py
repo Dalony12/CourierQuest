@@ -34,7 +34,7 @@ class HUD:
             text_y = start_y + i * line_height
             pantalla.blit(text, (text_x, text_y))
 
-    def draw_minimap(self, mapa, repartidor, surface=None):
+    def draw_minimap(self, mapa, repartidor, surface=None, active_paquetes=None, active_paquete=None):
         """Genera el minimapa usando el renderizado real del juego, expandido y centrado dentro del GPS."""
         import pygame
         from frontend.render import draw_map
@@ -74,6 +74,40 @@ class HUD:
         rep_x = int(repartidor.rect.centerx * scale_x)
         rep_y = int(repartidor.rect.centery * scale_y)
         pygame.draw.circle(minimap_surface, (255, 0, 0), (rep_x, rep_y), 4)
+        # Dibujar puntos para paquetes activos
+        if active_paquetes:
+            for p in active_paquetes:
+                color_rgb = self.color_map.get(p.color, (255, 255, 255))
+                if not p.recogido:
+                    # Punto en origen
+                    px = int(p.origen[0] * TILE_SIZE * scale_x)
+                    py = int(p.origen[1] * TILE_SIZE * scale_y)
+                    pygame.draw.circle(minimap_surface, color_rgb, (px, py), 3)
+                else:
+                    # Punto en destino
+                    bx = int(p.destino[0] * TILE_SIZE * scale_x)
+                    by = int(p.destino[1] * TILE_SIZE * scale_y)
+                    pygame.draw.circle(minimap_surface, color_rgb, (bx, by), 3)
+        # Dibujar camino al paquete activo
+        if active_paquete:
+            color_rgb = self.color_map.get(active_paquete.color, (255, 255, 255))
+            if not active_paquete.recogido:
+                target = active_paquete.origen
+            else:
+                target = active_paquete.destino
+            rep_pos = (repartidor.rect.centerx // TILE_SIZE, repartidor.rect.centery // TILE_SIZE)
+            path = self.find_path(mapa, rep_pos, target)
+            for x, y in path:
+                if (x, y) == rep_pos:
+                    continue  # No dibujar sobre el punto del repartidor
+                px = int(x * TILE_SIZE * scale_x)
+                py = int(y * TILE_SIZE * scale_y)
+                cell_w = int(TILE_SIZE * scale_x)
+                cell_h = int(TILE_SIZE * scale_y)
+                # Dibujar semi-transparente
+                path_surf = pygame.Surface((cell_w, cell_h), pygame.SRCALPHA)
+                path_surf.fill((*color_rgb, 150))  # 150 alpha para semi-transparente
+                minimap_surface.blit(path_surf, (px, py))
         # Blitea el minimapa centrado dentro del GPS
         surface.blit(minimap_surface, (minimap_x, minimap_y))
     def __init__(self, screen, repartidor=None):
@@ -82,6 +116,15 @@ class HUD:
         self.repartidor = repartidor  # Referencia directa al repartidor
         self.score = 0
         self.font = pygame.font.Font(None, 36)
+        self.color_map = {
+            "rojo": (255, 0, 0),
+            "verde": (0, 255, 0),
+            "azul": (0, 0, 255),
+            "amarillo": (255, 255, 0),
+            "morado": (128, 0, 128),
+            "celeste": (0, 255, 255),
+            "naranja": (255, 165, 0)
+        }
         self.sprite_positions = {
             'hud':                 (0, 0),
             'gps':                 (759, 5),
@@ -170,7 +213,7 @@ class HUD:
         pygame.draw.rect(surface, color, (x + 2, y + 2, fill_width, height - 4))
 
 
-    def draw(self, surface=None, mapa=None, repartidor=None):
+    def draw(self, surface=None, mapa=None, repartidor=None, active_paquetes=None, active_paquete=None):
         """Dibuja los sprites PNG del HUD en el orden definido por draw_stack (de fondo a frente)."""
         if surface is None:
             surface = self.screen
@@ -219,7 +262,7 @@ class HUD:
 
         # --- Minimap por encima de todo ---
         if mapa and repartidor:
-            self.draw_minimap(mapa, repartidor, surface)
+            self.draw_minimap(mapa, repartidor, surface, active_paquetes, active_paquete)
 
     ###########################################################################################
     def coordenadas_a_pixeles(self, coord):
@@ -266,6 +309,31 @@ class HUD:
                 surface_juego.blit(sprite, (x, y))
             else:
                 print("Buzón fuera del área visible")
+
+    def find_path(self, mapa, start, end):
+        """Encuentra el camino más corto usando BFS."""
+        from collections import deque
+        queue = deque([start])
+        came_from = {start: None}
+        while queue:
+            current = queue.popleft()
+            if current == end:
+                break
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nx, ny = current[0] + dx, current[1] + dy
+                if 0 <= nx < mapa.width and 0 <= ny < mapa.height and (nx, ny) not in came_from:
+                    if not mapa.celdas[nx][ny].blocked:
+                        queue.append((nx, ny))
+                        came_from[(nx, ny)] = current
+        if end not in came_from:
+            return []
+        path = []
+        current = end
+        while current is not None:
+            path.append(current)
+            current = came_from[current]
+        path.reverse()
+        return path
 
     #################################################################################################
 

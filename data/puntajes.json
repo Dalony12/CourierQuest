@@ -1,5 +1,10 @@
 [
     {
+        "meta": 910,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
         "meta": 840,
         "ingresos": 1100.0,
         "exito": true
@@ -8,6 +13,16 @@
         "meta": 840,
         "ingresos": 1100.0,
         "exito": true
+    },
+    {
+        "meta": 910,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
+        "meta": 950,
+        "ingresos": 580.0,
+        "exito": false
     },
     {
         "meta": 890,
@@ -16,6 +31,11 @@
     },
     {
         "meta": 940,
+        "ingresos": 440.0,
+        "exito": false
+    },
+    {
+        "meta": 900,
         "ingresos": 440.0,
         "exito": false
     },
@@ -32,6 +52,16 @@
     {
         "meta": 950,
         "ingresos": 180.0,
+        "exito": false
+    },
+    {
+        "meta": 885,
+        "ingresos": 180.0,
+        "exito": false
+    },
+    {
+        "meta": 940,
+        "ingresos": 0,
         "exito": false
     },
     {
