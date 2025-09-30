@@ -10,6 +10,21 @@
         "exito": false
     },
     {
+        "meta": 950,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 850,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 830,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
         "meta": 895,
         "ingresos": 0,
         "exito": false
@@ -131,6 +146,21 @@
     },
     {
         "meta": 905,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 830,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 830,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 830,
         "ingresos": 0,
         "exito": false
     }

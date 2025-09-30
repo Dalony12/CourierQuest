@@ -70,7 +70,7 @@ class Game:
         gestor_pedidos = self.gestor_pedidos
         clima = self.clima
         mapa = self.mapa
-        
+
         return {
             "repartidor": {
                 "nombre": repartidor.nombre,

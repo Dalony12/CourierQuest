@@ -31,8 +31,6 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     slide_end = None
     slide_progress = 0.0
     rep = game.repartidor
-    velocidad = rep.velocidad_actual()
-    slide_duration = max(40, int(80 / velocidad))
     pedido_activo = None
     pedido_timer = pygame.time.get_ticks() + random.randint(3000, 6000)
     mostrar_pedido = False
@@ -138,6 +136,8 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
             new_x = celda_x * TILE_SIZE + TILE_SIZE // 2
             new_y = celda_y * TILE_SIZE + TILE_SIZE // 2
             if rep.puede_moverse_a(celda_x, celda_y):
+                velocidad = rep.velocidad_actual()
+                slide_duration = max(40, int(80 / velocidad))
                 slide_start = (rep.rect.centerx, rep.rect.centery)
                 slide_end = (new_x, new_y)
                 slide_progress = 0.0
@@ -154,6 +154,8 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
             if slide_progress >= 1.0:
                 rep.rect.centerx, rep.rect.centery = slide_end
                 sliding = False
+                rep.pos_x = rep.rect.centerx // TILE_SIZE
+                rep.pos_y = rep.rect.centery // TILE_SIZE
             else:
                 rep.rect.centerx = int(slide_start[0] + (slide_end[0] - slide_start[0]) * slide_progress)
                 rep.rect.centery = int(slide_start[1] + (slide_end[1] - slide_start[1]) * slide_progress)
