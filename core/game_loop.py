@@ -22,7 +22,7 @@ def get_pedido_delay(active_count):
 def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     print("[DEBUG] game_loop iniciado.")
     pygame.mixer.music.load("assets/Music/Quiz! - Deltarune (8-bit Remix).mp3")
-    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.set_volume(0.1)
     pygame.mixer.music.play(-1)  # Loop indefinitely
     # Load sound effects
     sound_bicicleta = pygame.mixer.Sound("assets/soundEffects/bicicleta.mp3")
@@ -91,10 +91,10 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     barra_inicio = None
     barra_duracion = 2000  # ms (2 segundos)
 
-    mostrar_pedido = False
-    pedido_info = None
-    pedido_aceptado = False
-    pedido_queue = []
+    # Initialize order queue with all available orders
+    disponibles = game.gestor_pedidos.obtener_disponibles(pygame.time.get_ticks() // 1000)
+    pedido_queue = list(disponibles)
+    random.shuffle(pedido_queue)
     pedido_timer = pygame.time.get_ticks()
 
     while running:
@@ -119,47 +119,13 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     pedido_aceptado = True
                 elif evento.key == pygame.K_n:
                     mostrar_pedido = False
+                    pedido_queue.append(pedido_info)
                     pedido_info = None
-                    if pedido_queue:
-                        if delay is not None:
-                            pedido_timer = pygame.time.get_ticks() + delay
-                        else:
-                            pedido_timer = float('inf')
-            if mostrar_pedido and evento.type == pygame.MOUSEBUTTONDOWN:
-                mx, my = pygame.mouse.get_pos()
-                btn_rect = pygame.Rect(game.hud.sprite_positions['btnAceptar'], game.hud.sprites['btnAceptar'].get_size())
-                btnr_rect = pygame.Rect(game.hud.sprite_positions['btnRechazar'], game.hud.sprites['btnRechazar'].get_size())
-                if btn_rect.collidepoint(mx, my):
-                    pedido_aceptado = True
-                    sound_btn.play()
-                elif btnr_rect.collidepoint(mx, my):
-                    mostrar_pedido = False
-                    pedido_info = None
-                    if pedido_queue:
-                        pedido_timer = pygame.time.get_ticks()
-                    else:
-                        delay = get_pedido_delay(len(game.active_paquetes))
-                        if delay is not None:
-                            pedido_timer = pygame.time.get_ticks() + delay
-                        else:
-                            pedido_timer = float('inf')
-                    sound_btn.play()
+                    pedido_timer = pygame.time.get_ticks() + 5000  # 5 seconds delay after reject
+
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 btn_anterior_rect = pygame.Rect(game.hud.sprite_positions['btnAnteriorPedido'], game.hud.sprites['btnAnteriorPedido'].get_size())
-                if evento.key == pygame.K_y:
-                    pedido_aceptado = True
-                elif evento.key == pygame.K_n:
-                    mostrar_pedido = False
-                    pedido_info = None
-                    if pedido_queue:
-                        pedido_timer = pygame.time.get_ticks()
-                    else:
-                        delay = get_pedido_delay(len(game.active_paquetes))
-                        if delay is not None:
-                            pedido_timer = pygame.time.get_ticks() + delay
-                        else:
-                            pedido_timer = float('inf')
             if mostrar_pedido and evento.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 btn_rect = pygame.Rect(game.hud.sprite_positions['btnAceptar'], game.hud.sprites['btnAceptar'].get_size())
@@ -169,15 +135,9 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     sound_btn.play()
                 elif btnr_rect.collidepoint(mx, my):
                     mostrar_pedido = False
+                    pedido_queue.append(pedido_info)
                     pedido_info = None
-                    if pedido_queue:
-                        pedido_timer = pygame.time.get_ticks()
-                    else:
-                        delay = get_pedido_delay(len(game.active_paquetes))
-                        if delay is not None:
-                            pedido_timer = pygame.time.get_ticks() + delay
-                        else:
-                            pedido_timer = float('inf')
+                    pedido_timer = pygame.time.get_ticks() + 5000  # 5 seconds delay after reject
                     sound_btn.play()
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
@@ -200,7 +160,7 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                 btn_ordenar_prioridad_rect = pygame.Rect(game.hud.sprite_positions['btnOrdenarPrioridad'], game.hud.sprites['btnOrdenarPrioridad'].get_size())
                 if btn_ordenar_prioridad_rect.collidepoint(mx, my):
                     if game.active_paquetes:
-                        game.active_paquetes = heap_sort(game.active_paquetes, lambda p: (-p.priority, p.codigo))
+                        game.active_paquetes = heap_sort(game.active_paquetes, lambda p: (- (p.priority or 0), p.codigo))
                         game.current_focus = 0
                     sound_btn.play()
             if evento.type == pygame.KEYDOWN:
@@ -216,7 +176,7 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                         game.current_focus = 0
                 elif evento.key == pygame.K_g:
                     if game.active_paquetes:
-                        game.active_paquetes = heap_sort(game.active_paquetes, lambda p: (-p.priority, p.codigo))
+                        game.active_paquetes = heap_sort(game.active_paquetes, lambda p: (- (p.priority or 0), p.codigo))
                         game.current_focus = 0
         game.paquete_activo = game.active_paquetes[game.current_focus] if game.active_paquetes else None
         if pygame.display.get_active():
@@ -238,23 +198,25 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                 pedido_info = pedido_queue.pop(0)
                 mostrar_pedido = True
                 sound_nuevoPedido.play()
-                orders_shown += 1
-                if orders_shown < initial_orders_to_show:
-                    pedido_timer = pygame.time.get_ticks()
+                delay = get_pedido_delay(len(game.active_paquetes))
+                if delay is not None:
+                    pedido_timer = pygame.time.get_ticks() + delay
                 else:
+                    pedido_timer = float('inf')
+            else:
+                # If queue empty, refill it
+                disponibles = game.gestor_pedidos.obtener_disponibles(pygame.time.get_ticks() // 1000)
+                pedido_queue = list(disponibles)
+                random.shuffle(pedido_queue)
+                if pedido_queue:
+                    pedido_info = pedido_queue.pop(0)
+                    mostrar_pedido = True
+                    sound_nuevoPedido.play()
                     delay = get_pedido_delay(len(game.active_paquetes))
                     if delay is not None:
                         pedido_timer = pygame.time.get_ticks() + delay
                     else:
                         pedido_timer = float('inf')
-            else:
-                disponibles = game.gestor_pedidos.obtener_disponibles(pygame.time.get_ticks() // 1000)
-                if disponibles:
-                    random.seed(time.time())
-                    random.shuffle(disponibles)
-                    pedido_info = random.choice(disponibles)
-                    mostrar_pedido = True
-                    sound_nuevoPedido.play()
         game.clima.actualizar_clima()
         estado = game.clima.get_estado_climatico()
         game.repartidor.aplicar_clima(estado["condicion"], estado["intensidad"])
@@ -456,9 +418,12 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     game.repartidor.entregar_paquete(paquete)
                     # Remove from active lists
                     index = game.active_paquetes.index(paquete)
-                    game.active_orders[index].entregado = True
+                    delivered_order = game.active_orders[index]
+                    delivered_order.entregado = True
                     del game.active_orders[index]
                     del game.active_paquetes[index]
+                    # Append back to queue for potential re-offer
+                    pedido_queue.append(delivered_order)
                     # Adjust current_focus after removal
                     if game.active_paquetes:
                         if game.current_focus >= len(game.active_paquetes):

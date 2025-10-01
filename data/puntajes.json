@@ -70,6 +70,36 @@
         "exito": true
     },
     {
+        "meta": 860,
+        "ingresos": 980.0,
+        "exito": true
+    },
+    {
+        "meta": 860,
+        "ingresos": 980.0,
+        "exito": true
+    },
+    {
+        "meta": 835,
+        "ingresos": 960.0,
+        "exito": true
+    },
+    {
+        "meta": 835,
+        "ingresos": 960.0,
+        "exito": true
+    },
+    {
+        "meta": 835,
+        "ingresos": 860.0,
+        "exito": true
+    },
+    {
+        "meta": 835,
+        "ingresos": 860.0,
+        "exito": true
+    },
+    {
         "meta": 950,
         "ingresos": 800.0,
         "exito": false
@@ -152,6 +182,11 @@
     {
         "meta": 935,
         "ingresos": 180.0,
+        "exito": false
+    },
+    {
+        "meta": 840,
+        "ingresos": 0,
         "exito": false
     },
     {
@@ -471,6 +506,11 @@
     },
     {
         "meta": 890,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 860,
         "ingresos": 0,
         "exito": false
     }

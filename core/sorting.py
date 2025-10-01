@@ -23,9 +23,9 @@ def merge(left, right, key_func):
 def heap_sort(arr, key_func):
     import heapq
     # Use heapq as min-heap on the key, assuming key is set for ascending order of desired
-    heap = [(key_func(item), item) for item in arr]
+    heap = [(key_func(item), i, item) for i, item in enumerate(arr)]
     heapq.heapify(heap)
     sorted_arr = []
     while heap:
-        sorted_arr.append(heapq.heappop(heap)[1])
+        sorted_arr.append(heapq.heappop(heap)[2])
     return sorted_arr
