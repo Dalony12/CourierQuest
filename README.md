@@ -30,5 +30,5 @@ resistencia)
 
 ## 👥 Autores
 
-- Javier Garita - [@JavierGarita](https://github.com/Dalony12)
-- Josue Peñaranda - [@JosuePenaranda](https://github.com/JosuePenaranda)
+- Javier Garita Granados - [@JavierGarita](https://github.com/Dalony12)
+- Josue Peñaranda Alvarado - [@JosuePenaranda](https://github.com/JosuePenaranda)
