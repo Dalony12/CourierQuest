@@ -108,6 +108,18 @@ class HUD:
                 path_surf = pygame.Surface((cell_w, cell_h), pygame.SRCALPHA)
                 path_surf.fill((*color_rgb, 150))  # 150 alpha para semi-transparente
                 minimap_surface.blit(path_surf, (px, py))
+        # Dibujar línea recta entre repartidor y paquete activo
+        if active_paquete:
+            color_rgb = self.color_map.get(active_paquete.color, (255, 255, 255))
+            if not active_paquete.recogido:
+                target = active_paquete.origen
+            else:
+                target = active_paquete.destino
+            rep_x = int(repartidor.rect.centerx * scale_x)
+            rep_y = int(repartidor.rect.centery * scale_y)
+            target_x = int(target[0] * TILE_SIZE * scale_x)
+            target_y = int(target[1] * TILE_SIZE * scale_y)
+            pygame.draw.line(minimap_surface, color_rgb, (rep_x, rep_y), (target_x, target_y), 2)
         # Blitea el minimapa centrado dentro del GPS
         surface.blit(minimap_surface, (minimap_x, minimap_y))
     def __init__(self, screen, repartidor=None):

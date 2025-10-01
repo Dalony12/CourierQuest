@@ -1,5 +1,30 @@
 [
     {
+        "meta": 870,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
+        "meta": 935,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
+        "meta": 865,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
+        "meta": 985,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
+        "meta": 940,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
         "meta": 910,
         "ingresos": 1100.0,
         "exito": true
@@ -16,11 +41,41 @@
     },
     {
         "meta": 910,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
+        "meta": 940,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
+        "meta": 985,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
+        "meta": 865,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
+        "meta": 935,
+        "ingresos": 1100.0,
+        "exito": true
+    },
+    {
+        "meta": 870,
         "ingresos": 1100.0,
         "exito": true
     },
     {
         "meta": 950,
+        "ingresos": 800.0,
+        "exito": false
+    },
+    {
+        "meta": 860,
         "ingresos": 580.0,
         "exito": false
     },
@@ -30,12 +85,27 @@
         "exito": false
     },
     {
-        "meta": 940,
-        "ingresos": 440.0,
+        "meta": 950,
+        "ingresos": 580.0,
+        "exito": false
+    },
+    {
+        "meta": 825,
+        "ingresos": 580.0,
+        "exito": false
+    },
+    {
+        "meta": 820,
+        "ingresos": 580.0,
         "exito": false
     },
     {
         "meta": 900,
+        "ingresos": 440.0,
+        "exito": false
+    },
+    {
+        "meta": 940,
         "ingresos": 440.0,
         "exito": false
     },
@@ -50,7 +120,12 @@
         "exito": false
     },
     {
-        "meta": 950,
+        "meta": 975,
+        "ingresos": 180.0,
+        "exito": false
+    },
+    {
+        "meta": 900,
         "ingresos": 180.0,
         "exito": false
     },
@@ -60,12 +135,62 @@
         "exito": false
     },
     {
-        "meta": 940,
+        "meta": 950,
+        "ingresos": 180.0,
+        "exito": false
+    },
+    {
+        "meta": 850,
+        "ingresos": 180.0,
+        "exito": false
+    },
+    {
+        "meta": 845,
+        "ingresos": 180.0,
+        "exito": false
+    },
+    {
+        "meta": 935,
+        "ingresos": 180.0,
+        "exito": false
+    },
+    {
+        "meta": 930,
         "ingresos": 0,
         "exito": false
     },
     {
-        "meta": 990,
+        "meta": 955,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 835,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 900,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 805,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 855,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 935,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 930,
         "ingresos": 0,
         "exito": false
     },
@@ -75,12 +200,37 @@
         "exito": false
     },
     {
-        "meta": 1000,
+        "meta": 890,
         "ingresos": 0,
         "exito": false
     },
     {
-        "meta": 985,
+        "meta": 895,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 995,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 960,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 820,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 970,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 800,
         "ingresos": 0,
         "exito": false
     },
@@ -90,22 +240,7 @@
         "exito": false
     },
     {
-        "meta": 845,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 940,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 885,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 945,
+        "meta": 950,
         "ingresos": 0,
         "exito": false
     },
@@ -115,22 +250,17 @@
         "exito": false
     },
     {
-        "meta": 840,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
         "meta": 830,
         "ingresos": 0,
         "exito": false
     },
     {
-        "meta": 830,
+        "meta": 895,
         "ingresos": 0,
         "exito": false
     },
     {
-        "meta": 830,
+        "meta": 955,
         "ingresos": 0,
         "exito": false
     },
@@ -145,7 +275,12 @@
         "exito": false
     },
     {
-        "meta": 905,
+        "meta": 930,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 930,
         "ingresos": 0,
         "exito": false
     },
@@ -160,21 +295,6 @@
         "exito": false
     },
     {
-        "meta": 825,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 930,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 865,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
         "meta": 930,
         "ingresos": 0,
         "exito": false
@@ -185,7 +305,7 @@
         "exito": false
     },
     {
-        "meta": 820,
+        "meta": 930,
         "ingresos": 0,
         "exito": false
     },
@@ -205,7 +325,7 @@
         "exito": false
     },
     {
-        "meta": 930,
+        "meta": 820,
         "ingresos": 0,
         "exito": false
     },
@@ -220,12 +340,17 @@
         "exito": false
     },
     {
-        "meta": 930,
+        "meta": 865,
         "ingresos": 0,
         "exito": false
     },
     {
         "meta": 930,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 825,
         "ingresos": 0,
         "exito": false
     },
@@ -250,12 +375,7 @@
         "exito": false
     },
     {
-        "meta": 955,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 895,
+        "meta": 905,
         "ingresos": 0,
         "exito": false
     },
@@ -265,12 +385,42 @@
         "exito": false
     },
     {
+        "meta": 830,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 830,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 840,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
         "meta": 850,
         "ingresos": 0,
         "exito": false
     },
     {
-        "meta": 950,
+        "meta": 945,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 885,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 940,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 845,
         "ingresos": 0,
         "exito": false
     },
@@ -280,37 +430,12 @@
         "exito": false
     },
     {
-        "meta": 800,
+        "meta": 985,
         "ingresos": 0,
         "exito": false
     },
     {
-        "meta": 970,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 820,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 960,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 995,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 895,
-        "ingresos": 0,
-        "exito": false
-    },
-    {
-        "meta": 890,
+        "meta": 1000,
         "ingresos": 0,
         "exito": false
     },
@@ -320,12 +445,32 @@
         "exito": false
     },
     {
-        "meta": 930,
+        "meta": 990,
         "ingresos": 0,
         "exito": false
     },
     {
-        "meta": 935,
+        "meta": 940,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 825,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 995,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 850,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 890,
         "ingresos": 0,
         "exito": false
     }

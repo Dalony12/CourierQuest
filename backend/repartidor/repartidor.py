@@ -17,6 +17,8 @@ class Repartidor:
         self.v0 = velocidad
         self.inventario = Inventario()
         self.pesoMaximo = 5
+        self.primera_tardanza_hoy = False
+        self.racha_sin_penalizacion = 0
 
         self.sprites = {
             "arriba": pygame.transform.scale(pygame.image.load(imagen_arriba).convert_alpha(), escala),
@@ -196,25 +198,63 @@ class Repartidor:
         return False
 
     def entregar_paquete(self, paquete):
-        self.inventario.eliminar(paquete)
-        self.ingresos += paquete.pago
-        self._actualizar_reputacion(paquete)
+        # Buscar paquete en inventario por codigo y eliminar esa instancia
+        paquete_en_inventario = None
+        for p in self.inventario.items:
+            if p.codigo == paquete.codigo:
+                paquete_en_inventario = p
+                break
+        if paquete_en_inventario:
+            self.inventario.eliminar(paquete_en_inventario)
+        else:
+            print(f"Warning: Paquete with codigo {paquete.codigo} not found in inventory during entrega.")
+        paquete.entregado = True
+        # Calcular retraso en segundos
+        if paquete.tiempo_aceptado is not None:
+            tiempo_entrega = pygame.time.get_ticks()
+            delta_ms = tiempo_entrega - paquete.tiempo_aceptado
+            delta_s = delta_ms / 1000
+            retraso = max(0, delta_s - paquete.tiempo_limite)
+        else:
+            retraso = 0
+        paquete.retraso = retraso
+        # Aplicar bonus de reputación
+        bonus = 1.05 if self.reputacion >= 90 else 1.0
+        pago_final = paquete.payout * bonus
+        self.ingresos += pago_final
+        self._actualizar_reputacion_completo(paquete)
 
-    def _actualizar_reputacion(self, paquete):
+    def _actualizar_reputacion_completo(self, paquete):
         retraso = paquete.retraso
+        penalizacion = 0
         if retraso <= 0:
             self.reputacion += 3
-        elif retraso <= 30:
-            self.reputacion -= 2
-        elif retraso <= 120:
-            self.reputacion -= 5
         else:
-            self.reputacion -= 10
+            if retraso <= 30:
+                penalizacion = 2
+            elif retraso <= 120:
+                penalizacion = 5
+            else:
+                penalizacion = 10
+            # Primera tardanza del día
+            if not self.primera_tardanza_hoy and self.reputacion >= 85:
+                penalizacion = penalizacion // 2
+                self.primera_tardanza_hoy = True
+            self.reputacion -= penalizacion
 
-        if self.reputacion >= 90:
-            self.ingresos *= 1.05
-        elif self.reputacion < 20:
+        # Racha sin penalización
+        if penalizacion == 0:
+            self.racha_sin_penalizacion += 1
+            if self.racha_sin_penalizacion >= 3:
+                self.reputacion += 2
+                self.racha_sin_penalizacion = 0
+        else:
+            self.racha_sin_penalizacion = 0
+
+        # Derrota si reputación < 20
+        if self.reputacion < 20:
             print("¡Derrota! Reputación demasiado baja.")
+            # Aquí se podría terminar el juego, pero por ahora solo print
 
     def descansar(self):
         rec = 0.1

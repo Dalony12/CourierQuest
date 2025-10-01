@@ -6,6 +6,8 @@ def main_menu():
     VENTANA_ANCHO, VENTANA_ALTO = 1024, 768
     pantalla = pygame.display.set_mode((VENTANA_ANCHO, VENTANA_ALTO))
     pygame.display.set_caption("CourierQuest - Menú Principal")
+    pygame.mixer.music.load("assets/Music/8bit Menu Music.mp3")
+    pygame.mixer.music.play(-1)  # Loop indefinitely
     font = pygame.font.Font(None, 80)
     small_font = pygame.font.Font(None, 40)
     clock = pygame.time.Clock()
@@ -46,6 +48,10 @@ def main_menu():
         clock.tick(60)
 
 def pause_menu(pantalla):
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load("assets/Music/8bit Menu Music.mp3")
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
     font = pygame.font.Font(None, 80)
     small_font = pygame.font.Font(None, 40)
     clock = pygame.time.Clock()
@@ -71,6 +77,10 @@ def pause_menu(pantalla):
                     selected = (selected + 1) % len(opciones)
                 if event.key == pygame.K_RETURN:
                     if opciones[selected] == "Continuar":
+                        pygame.mixer.music.stop()
+                        pygame.mixer.music.load("assets/Music/Quiz! - Deltarune (8-bit Remix).mp3")
+                        pygame.mixer.music.set_volume(0.3)
+                        pygame.mixer.music.play(-1)
                         return True
                     elif opciones[selected] == "Guardar Juego":
                         return "guardar"

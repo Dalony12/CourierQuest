@@ -7,15 +7,21 @@ from core.game_loop import game_loop
 
 def main():
     pygame.init()
+    pygame.mixer.init()
     VENTANA_ANCHO, VENTANA_ALTO = 1024, 768
     pantalla = pygame.display.set_mode((VENTANA_ANCHO, VENTANA_ALTO))
     pygame.display.set_caption("CourierQuest")
     # Menú principal
     resultado = main_menu()
+    pygame.mixer.music.stop()  # Stop menu music
     if resultado is False:
         return
     # Pantalla de instrucciones
     if resultado is True:
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("assets/Music/8bit Menu Music.mp3")
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
         ok, meta_ingresos = loading_screen(pantalla)
         print(f"[DEBUG] loading_screen returned: ok={ok}, meta_ingresos={meta_ingresos}")
         if not ok:

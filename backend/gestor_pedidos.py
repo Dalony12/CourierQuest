@@ -3,9 +3,8 @@ class GestorPedidos:
         self.pedidos = []  # Lista de objetos Pedido
 
     def agregar_pedido(self, pedido):
-        """Agrega un pedido y lo ordena por prioridad (menor número = más urgente)."""
+        """Agrega un pedido."""
         self.pedidos.append(pedido)
-        self._ordenar_por_prioridad()
 
     def eliminar_pedido(self, pedido):
         """Elimina un pedido de la lista."""
@@ -17,8 +16,8 @@ class GestorPedidos:
         self.pedidos.sort(key=lambda p: p.priority)
 
     def obtener_disponibles(self, tiempo_actual):
-        """Devuelve los pedidos que ya están liberados y aún no se han recogido."""
-        return [p for p in self.pedidos if tiempo_actual >= p.release_time and not p.recogido]
+        """Devuelve los pedidos que ya están liberados y aún no se han recogido ni entregado."""
+        return [p for p in self.pedidos if tiempo_actual >= p.release_time and not p.recogido and not p.entregado]
 
     def obtener_activos(self):
         """Pedidos que están en el inventario pero no se han entregado."""

@@ -24,7 +24,7 @@ def draw_repartidor(pantalla, repartidor, camara, offset_y=0, moving=False):
     surf_rep, rect_rep = camara.apply_surface(surf, rect_rep)
     pantalla.blit(surf_rep, rect_rep)
 
-def draw_paquete(pantalla, paquete, camara, tile_size, sprites):
+def draw_paquete(pantalla, paquete, camara, tile_size, sprites, is_active=False):
     if not paquete.recogido:
         sprite = sprites.get(f"paquete{paquete.color}")
         if sprite:
@@ -32,8 +32,13 @@ def draw_paquete(pantalla, paquete, camara, tile_size, sprites):
             rect = pygame.Rect(x * tile_size, y * tile_size, tile_size, tile_size)
             surf_scaled, rect_scaled = camara.apply_surface(sprite, rect)
             pantalla.blit(surf_scaled, rect_scaled)
+            if is_active:
+                # Draw a yellow border around the package
+                border_color = (255, 255, 0)  # Yellow
+                border_width = 3
+                pygame.draw.rect(pantalla, border_color, rect_scaled, border_width)
 
-def draw_buzon(pantalla, paquete, camara, tile_size, sprites):
+def draw_buzon(pantalla, paquete, camara, tile_size, sprites, is_active=False):
     if paquete.recogido and not paquete.entregado:
         sprite = sprites.get(f"buzon{paquete.color}")
         if sprite:
@@ -41,6 +46,11 @@ def draw_buzon(pantalla, paquete, camara, tile_size, sprites):
             rect = pygame.Rect(x * tile_size, y * tile_size, tile_size, tile_size)
             surf_scaled, rect_scaled = camara.apply_surface(sprite, rect)
             pantalla.blit(surf_scaled, rect_scaled)
+            if is_active:
+                # Draw a yellow border around the mailbox
+                border_color = (255, 255, 0)  # Yellow
+                border_width = 3
+                pygame.draw.rect(pantalla, border_color, rect_scaled, border_width)
 
 def draw_barra_carga(pantalla, x, y, progreso, tile_size, barra_tipo=None):
     # Dibuja una barra de carga sobre la celda (x, y)

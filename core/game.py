@@ -1,4 +1,6 @@
 import pygame
+import random
+import time
 from backend.mapa import Mapa
 from backend.repartidor.repartidor import Repartidor
 from backend.pedido import Pedido
@@ -50,6 +52,10 @@ class Game:
             pedido = Pedido()
             pedido._cargar(pedido_raw)
             self.gestor_pedidos.agregar_pedido(pedido)
+
+        # Shuffle pedidos for random order
+        random.seed(time.time())
+        random.shuffle(self.gestor_pedidos.pedidos)
 
         # Obtener datos del clima
         clima_data = cargar_con_cache("clima", APIcontroller.CollectInformacionClima)

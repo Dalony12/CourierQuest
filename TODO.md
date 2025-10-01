@@ -1,11 +1,10 @@
-- [x] Add color_map to HUD.__init__
-- [x] Modify draw_minimap in HUD to accept active_paquetes and draw circles for packages
-- [x] Modify call to draw_minimap in game_loop.py to pass game.active_paquetes
-- [x] Test the game to verify points appear on minimap
-- [x] Modify draw_minimap to accept active_paquete and draw line to it
-- [x] Modify HUD.draw to pass game.paquete_activo
-- [x] Modify call in game_loop to pass game.paquete_activo
-- [x] Test the path drawing
-- [x] Implement pathfinding to find path from repartidor to package
-- [x] Modify draw_minimap to draw colored cells along the path instead of straight line
-- [x] Test the path coloring
+# TODO for Sound Effects Implementation
+
+- [x] Set volume to 0.1 for all sound effects in game_loop.py
+- [x] Add bicycle_playing flag to track if bicycle sound is playing
+- [x] Modify bicycle sound logic: loop when moving and not inside building, stop otherwise
+- [x] Test the changes in the game
+- [ ] Implement wind sound: activate when weather is adverse (clouds, rain_light, rain, storm, fog, heat, cold, wind), vary volume, stop when not
+- [ ] Implement walk sound: loop when moving inside building (on B tiles), stop otherwise
+- [ ] Implement victory sound: play once when player wins
+- [ ] Implement cansado sound: loop while resistencia < 30
