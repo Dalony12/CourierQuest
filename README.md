@@ -27,3 +27,8 @@ resistencia)
 
 ## 🔃 Algoritmos de Ordenamient
 - Se utilizo el MergeSort para el acomodo para el JSON de puntajes, para mantener el mejor al peor puntaje, así mimso, se utilizo debido a la facilidad del algoritmo con archivos al igual que la eficiencia es relativamente estable con muchos datos, así mismo, con una complejidad de O(n log n)
+
+## 👥 Autores
+
+- Javier Garita Granados - [@JavierGarita](https://github.com/Dalony12)
+- Josue Peñaranda Alvarado - [@JosuePenaranda](https://github.com/JosuePenaranda)
