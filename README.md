@@ -28,12 +28,14 @@ resistencia)
   - En backend/mapa.py: El escenario se representa a través de una matriz bidimensional, la cual se estructura como una lista de listas (self.tiles_raw) que contiene los tiles del mapa. Asimismo, se   utiliza self.celdas, otra matriz bidimensional compuesta por objetos de tipo Celda, lo que permite añadir propiedades específicas a cada unidad espacial del entorno.
 
 **Vectores**
+
 Las listas de Python cumplen el rol de vectores en distintas partes del programa. Entre sus aplicaciones se destacan:
   - active_paquetes (core/game_loop.py), que almacena los paquetes activos en el juego.
   - pedido_queue (core/game_loop.py), que simula una cola de pedidos en proceso.
   - Listas de partículas tales como rain_particles y snow_particles, utilizadas en la representación de fenómenos climáticos.
 
 **Colas**
+
 Las colas se utilizan para gestionar procesos en orden secuencial bajo la política FIFO (First In, First Out):
   - En core/game_loop.py, la lista pedido_queue se manipula como cola, añadiendo elementos con append() y retirándolos mediante pop(0).
   - En frontend/hud.py, se implementa el algoritmo de BFS (Breadth-First Search) mediante collections.deque en el método find_path(), para la búsqueda de caminos en el minimapa.
