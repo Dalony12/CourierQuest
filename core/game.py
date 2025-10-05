@@ -39,6 +39,8 @@ class Game:
         self.repartidor.camara = self.camara
 
         self.repartidor.rect.center = (self.mapa.width * TILE_SIZE // 2, self.mapa.height * TILE_SIZE // 2)
+        self.repartidor.pos_x = self.repartidor.rect.centerx // TILE_SIZE
+        self.repartidor.pos_y = self.repartidor.rect.centery // TILE_SIZE
 
         # Crear HUD y pasar referencia al repartidor
         self.hud = HUD(pantalla, repartidor=self.repartidor)
