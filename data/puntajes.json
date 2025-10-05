@@ -13,6 +13,7 @@
         "meta": 865,
         "ingresos": 1100.0,
         "exito": true
+<<<<<<< HEAD
     },
     {
         "meta": 985,
@@ -573,5 +574,7 @@
         "meta": 870,
         "ingresos": 0,
         "exito": false
+=======
+>>>>>>> 2bbf6c614ffbf60a26c0ef02aa3ce150b1707f2f
     }
 ]
