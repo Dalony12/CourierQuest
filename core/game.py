@@ -1,6 +1,9 @@
 import pygame
 import random
 import time
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from backend.mapa import Mapa
 from backend.repartidor.repartidor import Repartidor
 from backend.pedido import Pedido
@@ -12,6 +15,7 @@ from frontend.hud import HUD
 from backend import APIcontroller
 from backend.APIcontroller import cargar_con_cache
 from core.config import TILE_SIZE, ZOOM, ANCHO, ALTO
+from core.undo_system import Caretaker
 
 class Game:
     def __init__(self, pantalla, ancho_juego, alto_juego):
@@ -72,6 +76,9 @@ class Game:
         self.indice_color = 0
         self.colores_paquete = ["Rojo", "Verde", "Azul", "Amarillo", "Morado", "Celeste", "Naranja"]
         self.paquete_activo = None
+
+        # Sistema de undo
+        self.undo_system = Caretaker()
 
     def generar_estado_actual(self, tiempo_restante):
         repartidor = self.repartidor
@@ -166,8 +173,8 @@ class Game:
         rep_data = estado["repartidor"]
         self.repartidor.nombre = rep_data["nombre"]
         self.repartidor.pos_x, self.repartidor.pos_y = rep_data["posicion"]
-        self.repartidor.rect = self.repartidor.sprites["abajo"].get_rect()
-        self.repartidor.rect.topleft = (self.repartidor.pos_x * TILE_SIZE, self.repartidor.pos_y * TILE_SIZE)
+        self.repartidor.rect.centerx = self.repartidor.pos_x * TILE_SIZE + TILE_SIZE // 2
+        self.repartidor.rect.centery = self.repartidor.pos_y * TILE_SIZE + TILE_SIZE // 2
         self.repartidor._actualizar_sprite()
         self.repartidor.meta_ingresos = rep_data["meta_ingresos"]
         self.repartidor.ingresos = rep_data["ingresos"]
