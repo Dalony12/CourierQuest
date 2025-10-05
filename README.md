@@ -41,6 +41,11 @@ Las colas se utilizan para gestionar procesos en orden secuencial bajo la polít
   - En frontend/hud.py, se implementa el algoritmo de BFS (Breadth-First Search) mediante collections.deque en el método find_path(), para la búsqueda de caminos en el minimapa.
   - En backend/mapa.py, collections.deque también es utilizado en el método _crear_celdas() para la agrupación de edificios mediante BFS, así como en find_path() para la búsqueda de trayectorias en el mapa.
 
+**Pila**
+
+Las pilas fueron la solucion para gestionar procesos con la estructura LIFO (Last In, First Out):
+  - En core/undo_system.py para cargar las snapshots en el orden correcto, de la más reciente a la más antigua.
+
 ---
 
 ## 🔃 Algoritmos de Ordenamient
