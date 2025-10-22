@@ -9,6 +9,7 @@ from core.screens import resultado_final
 from persistencia.datosJuego import guardar_en_slot
 from core.menu import mostrar_mensaje_guardado, mostrar_mensaje_error_guardado
 from core.sorting import merge_sort, heap_sort
+from core.undo_system import Memento
 
 def get_pedido_delay(active_count):
     # Always return a finite delay to ensure continuous order arrival
@@ -43,11 +44,14 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     sound_victory.set_volume(0.1)
     sound_cansado = pygame.mixer.Sound("assets/soundEffects/cansado.mp3")
     sound_cansado.set_volume(0.1)
+    sound_regresar = pygame.mixer.Sound("assets/soundEffects/regresar.mp3")
+    sound_regresar.set_volume(0.1)
     rain_sound_playing = False
     bicycle_playing = False
     wind_playing = False
     walk_playing = False
     cansado_playing = False
+    regresar_playing = False
     victory_played = False
     defeat_played = False
     reloj = pygame.time.Clock()
@@ -60,6 +64,8 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         tiempo_inicio = pygame.time.get_ticks()
     last_move_time = 0
     move_delay = 148  # ms entre movimientos (3 celdas por segundo)
+    last_undo_time = 0
+    undo_delay = 500  # ms entre undos
     move_dir = None
     anim_phase = 0.0
     anim_speed = 0.12
@@ -71,6 +77,11 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     rep = game.repartidor
     # Reset primera tardanza del día
     rep.primera_tardanza_hoy = False
+    # Initialize undo snapshots
+    if not hasattr(game, 'last_saved_pos'):
+        game.last_saved_pos = (rep.pos_x, rep.pos_y)
+        tiempo_restante_init = tiempo_jornada if not hasattr(game, "tiempo_restaurado") else game.tiempo_restaurado
+        game.undo_system.save_snapshot(Memento(game.generar_estado_actual(tiempo_restante_init)))
     # Inicializar partículas del clima
     rain_particles = []
     snow_particles = []
@@ -98,6 +109,11 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     pedido_timer = pygame.time.get_ticks()
 
     while running:
+        # Cronómetro de jornada laboral
+        tiempo_actual = (pygame.time.get_ticks() - tiempo_inicio) // 1000
+        tiempo_restante = max(0, tiempo_jornada - tiempo_actual)
+        minutos = tiempo_restante // 60
+        segundos = tiempo_restante % 60
         dx, dy, dir = 0, 0, None
         moved = False
         current_time = pygame.time.get_ticks()
@@ -178,6 +194,36 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     if game.active_paquetes:
                         game.active_paquetes = heap_sort(game.active_paquetes, lambda p: (- (p.priority or 0), p.codigo))
                         game.current_focus = 0
+                elif evento.key == pygame.K_r:
+                    if not regresar_playing:
+                        # Stop all sounds
+                        pygame.mixer.music.pause()
+                        sound_bicicleta.stop()
+                        sound_walk.stop()
+                        sound_rain.stop()
+                        if hasattr(game, 'sound_wind'):
+                            game.sound_wind.stop()
+                        sound_cansado.stop()
+                        # Play regresar sound looped
+                        sound_regresar.play(-1)
+                        regresar_playing = True
+            if evento.type == pygame.KEYUP and evento.key == pygame.K_r:
+                if regresar_playing:
+                    sound_regresar.stop()
+                    regresar_playing = False
+                    # Resume sounds
+                    pygame.mixer.music.unpause()
+                    if bicycle_playing:
+                        sound_bicicleta.play(-1)
+                    if walk_playing:
+                        sound_walk.play(-1)
+                    if rain_sound_playing:
+                        sound_rain.play(-1)
+                    if wind_playing:
+                        if hasattr(game, 'sound_wind'):
+                            game.sound_wind.play(-1)
+                    if cansado_playing:
+                        sound_cansado.play(-1)
         game.paquete_activo = game.active_paquetes[game.current_focus] if game.active_paquetes else None
         if pygame.display.get_active():
             pressed = pygame.key.get_pressed()
@@ -191,6 +237,36 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                 move_dir = "abajo"
             else:
                 move_dir = None
+            if pressed[pygame.K_r]:
+                undo_count = max(0, len(game.undo_system.snapshots) - 1)
+                if current_time - last_undo_time > undo_delay and undo_count > 0:
+                    state = game.undo_system.undo()
+                    if state:
+                        game.cargar_estado(state)
+                        rep = game.repartidor
+                        sliding = False
+                        slide_start = None
+                        slide_end = None
+                        slide_progress = 0.0
+                        move_dir = None
+                        tiempo_inicio = pygame.time.get_ticks() - (tiempo_jornada - game.tiempo_restaurado) * 1000
+                        disponibles = game.gestor_pedidos.obtener_disponibles(pygame.time.get_ticks() // 1000)
+                        pedido_queue = [o for o in disponibles if o not in game.active_orders]
+                        random.shuffle(pedido_queue)
+                        active_count = len(game.active_paquetes)
+                        delay = get_pedido_delay(active_count)
+                        if delay is not None:
+                            # Add extra delay after undo to prevent immediate new order sound
+                            pedido_timer = pygame.time.get_ticks() + delay + 2000
+                        else:
+                            pedido_timer = float('inf')
+                        mostrar_pedido = False
+                        pedido_info = None
+                        pedido_aceptado = False
+                        barra_carga = None
+                        barra_tipo = None
+                        barra_inicio = None
+                        last_undo_time = current_time
         else:
             move_dir = None
         if not mostrar_pedido and pygame.time.get_ticks() > pedido_timer:
@@ -343,6 +419,8 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     if (rep.pos_x, rep.pos_y) == p.origen or (rep.pos_x, rep.pos_y) == p.destino:
                         game.current_focus = index
                         break
+                game.undo_system.save_snapshot(Memento(game.generar_estado_actual(tiempo_restante)))
+                game.last_saved_pos = (rep.pos_x, rep.pos_y)
             else:
                 rep.rect.centerx = int(slide_start[0] + (slide_end[0] - slide_start[0]) * slide_progress)
                 rep.rect.centery = int(slide_start[1] + (slide_end[1] - slide_start[1]) * slide_progress)
@@ -462,11 +540,6 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
             elif resultado is False:
                     return
             paused = False
-        # Cronómetro de jornada laboral
-        tiempo_actual = (pygame.time.get_ticks() - tiempo_inicio) // 1000
-        tiempo_restante = max(0, tiempo_jornada - tiempo_actual)
-        minutos = tiempo_restante // 60
-        segundos = tiempo_restante % 60
         pantalla.fill((0, 0, 0))
         surface_juego.fill((0, 0, 0))
         is_moving = sliding
@@ -606,9 +679,9 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         reputacion_bg_surface.fill((30, 30, 30, 160))
         pantalla.blit(reputacion_bg_surface, (10, y_offset + dinero_bg_height + 10))
         pantalla.blit(reputacion_render, (18, y_offset + dinero_bg_height + 13))
+        font_pedido = pygame.font.Font(None, 24)
         # Mostrar pedido seleccionado
         if game.paquete_activo:
-            font_pedido = pygame.font.Font(None, 24)
             pedido_txt = f"Pedido seleccionado: {game.paquete_activo.color.capitalize()}"
             pedido_render = font_pedido.render(pedido_txt, True, (255, 255, 255))
             pedido_bg_width = pedido_render.get_width() + 10
@@ -617,6 +690,17 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
             pedido_bg_surface.fill((0, 0, 0, 128))
             pantalla.blit(pedido_bg_surface, (10, y_offset + dinero_bg_height + 10 + reputacion_bg_height + 10))
             pantalla.blit(pedido_render, (15, y_offset + dinero_bg_height + 10 + reputacion_bg_height + 15))
+        # Mostrar contador de undos
+        y_next = y_offset + dinero_bg_height + 10 + reputacion_bg_height + 10 + (pedido_bg_height + 10 if game.paquete_activo else 0)
+        undo_count = max(0, len(game.undo_system.snapshots) - 1)
+        undo_txt = f"Undos disponibles: {undo_count}"
+        undo_render = font_pedido.render(undo_txt, True, (255, 255, 255))
+        undo_bg_width = undo_render.get_width() + 10
+        undo_bg_height = undo_render.get_height() + 10
+        undo_bg_surface = pygame.Surface((undo_bg_width, undo_bg_height), pygame.SRCALPHA)
+        undo_bg_surface.fill((0, 0, 0, 128))
+        pantalla.blit(undo_bg_surface, (10, y_next))
+        pantalla.blit(undo_render, (15, y_next + 5))
         pygame.display.flip()
         reloj.tick(FPS)
         if tiempo_restante <= 0:

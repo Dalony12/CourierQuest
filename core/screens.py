@@ -3,83 +3,100 @@ import random
 from persistencia.puntajes import guardar_puntaje
 
 def loading_screen(pantalla):
-    font = pygame.font.Font(None, 60)
-    small_font = pygame.font.Font(None, 32)
+    font_title = pygame.font.Font(None, 50)
+    font_section = pygame.font.Font(None, 36)
+    font_text = pygame.font.Font(None, 28)
     clock = pygame.time.Clock()
     meta_ingresos = random.choice([x for x in range(800, 1001, 5)])
-    instrucciones = [
-        "INSTRUCCIONES DE JUEGO:",
-        "",
-        "MOVIMIENTO:",
-        "- Usa las flechas del teclado o WASD para moverte.",
-        "",
-        "GESTIÓN DE PEDIDOS:",
-        "- Los pedidos aparecen automáticamente en la pantalla.",
-        "- Acepta con Y o clic en 'Aceptar', rechaza con N o clic en 'Rechazar'.",
-        "- Recoge paquetes en las ubicaciones marcadas con paquetes (colores únicos).",
-        "- Entrega en los buzones del mismo color.",
-        "- Mantén la barra de carga completa para recoger/entregar.",
-        "",
-        "CONTROLES ADICIONALES:",
-        "- TAB o E: Cambiar al siguiente pedido.",
-        "- Q: Cambiar al pedido anterior.",
-        "- T: Ordenar pedidos por tiempo límite.",
-        "- G: Ordenar pedidos por prioridad.",
-        "- ESC: Pausar el juego (guardar/cargar disponible).",
-        "",
-        "OBJETIVOS:",
-        "- Entrega pedidos para ganar dinero y reputación.",
-        "- Evita quedarte sin energía (descansa cuando no te muevas).",
-        "- El clima afecta tu velocidad y energía.",
-        f"- Meta de ingresos: ${meta_ingresos} en 10 minutos.",
-        "",
-        "- Presiona ENTER para comenzar la jornada..."
+
+    instrucciones = {
+        "Movimiento": [
+            "Flechas o WASD para moverte."
+        ],
+        "Gestión de pedidos": [
+            "Pedidos aparecen auto.",
+            "Y: Aceptar, N: Rechazar.",
+            "Recoge en paquetes color.",
+            "Entrega en buzones color.",
+            "Mantén barra carga llena."
+        ],
+        "Controles": [
+            "TAB/E: Sig. pedido.",
+            "Q: Pedido ant.",
+            "T: Ordenar por tiempo.",
+            "G: Ordenar por prioridad.",
+            "ESC: Pausar (guardar).",
+            "R: Rebobinar (1 undo/tick, máx 15)."
+        ],
+        "Objetivos": [
+            "Entrega para ganar $ y rep.",
+            "Evita sin energía (descansa).",
+            "Clima afecta velocidad/energía.",
+            f"Meta: ${meta_ingresos} en 10 min."
+        ]
+    }
+
+    # Layout parameters
+    margin = 40
+    padding = 15
+    box_width = (pantalla.get_width() - margin * 3) // 2
+    box_height = (pantalla.get_height() - margin * 4 - 100) // 2  # Leave space for bottom box
+
+    # Positions for 4 boxes in 2x2 grid
+    positions = [
+        (margin, margin),
+        (margin * 2 + box_width, margin),
+        (margin, margin * 2 + box_height),
+        (margin * 2 + box_width, margin * 2 + box_height)
     ]
-    scroll_offset = 0
-    line_height = 40
-    visible_height = pantalla.get_height() - 300  # Espacio disponible para texto
-    max_scroll = max(0, len(instrucciones) * line_height - visible_height)
+
+    keys = list(instrucciones.keys())
+
+    # Bottom box for title and prompt
+    bottom_box_width = pantalla.get_width() - margin * 2
+    bottom_box_height = 80
+    bottom_box_x = margin
+    bottom_box_y = pantalla.get_height() - margin - bottom_box_height
+
     running = True
     while running:
         pantalla.fill((20, 20, 40))
-        titulo = font.render("CourierQuest", True, (255, 255, 255))
-        pantalla.blit(titulo, (pantalla.get_width()//2 - titulo.get_width()//2, 80))
-        # Renderizar líneas visibles con scroll
-        start_y = 200 - scroll_offset
-        for i, linea in enumerate(instrucciones):
-            y_pos = start_y + i * line_height
-            if y_pos > pantalla.get_height() or y_pos + line_height < 200:
-                continue  # Solo renderizar líneas visibles
-            txt = small_font.render(linea, True, (200, 200, 200))
-            pantalla.blit(txt, (pantalla.get_width()//2 - txt.get_width()//2, y_pos))
-        # Dibujar scrollbar si es necesario
-        if max_scroll > 0:
-            scrollbar_height = visible_height
-            scrollbar_width = 20
-            scrollbar_x = pantalla.get_width() - scrollbar_width - 10
-            scrollbar_y = 200
-            # Fondo del scrollbar
-            pygame.draw.rect(pantalla, (100, 100, 100), (scrollbar_x, scrollbar_y, scrollbar_width, scrollbar_height))
-            # Thumb del scrollbar
-            thumb_height = max(20, scrollbar_height * (visible_height / (len(instrucciones) * line_height)))
-            thumb_y = scrollbar_y + (scroll_offset / max_scroll) * (scrollbar_height - thumb_height)
-            pygame.draw.rect(pantalla, (200, 200, 200), (scrollbar_x, thumb_y, scrollbar_width, thumb_height))
+
+        for i, key in enumerate(keys):
+            x, y = positions[i]
+            # Draw box background
+            pygame.draw.rect(pantalla, (50, 50, 80), (x, y, box_width, box_height), border_radius=10)
+            # Draw box border
+            pygame.draw.rect(pantalla, (200, 200, 255), (x, y, box_width, box_height), 3, border_radius=10)
+
+            # Draw section title
+            title_surf = font_section.render(key, True, (255, 255, 255))
+            pantalla.blit(title_surf, (x + padding, y + padding))
+
+            # Draw instructions text
+            for j, line in enumerate(instrucciones[key]):
+                text_surf = font_text.render(line, True, (200, 200, 200))
+                pantalla.blit(text_surf, (x + padding, y + padding + 40 + j * 30))
+
+        # Draw bottom box
+        pygame.draw.rect(pantalla, (50, 50, 80), (bottom_box_x, bottom_box_y, bottom_box_width, bottom_box_height), border_radius=10)
+        pygame.draw.rect(pantalla, (200, 200, 255), (bottom_box_x, bottom_box_y, bottom_box_width, bottom_box_height), 3, border_radius=10)
+
+        # Draw main title in bottom box
+        main_title = font_title.render("INSTRUCCIONES DE JUEGO", True, (255, 255, 255))
+        pantalla.blit(main_title, (pantalla.get_width()//2 - main_title.get_width()//2, bottom_box_y + padding))
+
+        # Draw prompt in bottom box
+        prompt = font_text.render("Presiona ENTER para comenzar la jornada...", True, (255, 255, 0))
+        pantalla.blit(prompt, (pantalla.get_width()//2 - prompt.get_width()//2, bottom_box_y + padding + 40))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                print("[DEBUG] QUIT event in loading_screen")
                 return False, None
-            if event.type == pygame.KEYDOWN and (event.key == pygame.K_RETURN or event.key == pygame.K_SPACE):
-                print("[DEBUG] KEYDOWN event in loading_screen")
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                 return True, meta_ingresos
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Click izquierdo
-                    print("[DEBUG] MOUSEBUTTONDOWN event in loading_screen")
-                    return True, meta_ingresos
-                elif event.button == 4:  # Rueda arriba
-                    scroll_offset = max(0, scroll_offset - line_height)
-                elif event.button == 5:  # Rueda abajo
-                    scroll_offset = min(max_scroll, scroll_offset + line_height)
+
         pygame.display.flip()
         clock.tick(60)
 
@@ -91,7 +108,7 @@ def resultado_final(pantalla, meta_ingresos, ingresos):
     exito = ingresos >= meta_ingresos
     mensaje = "¡Meta alcanzada!" if exito else "Meta no alcanzada"
     color = (0, 255, 0) if exito else (255, 80, 80)
-    #Guuarda el puntaje en el JSON puntajes
+    # Guarda el puntaje en el JSON puntajes
     guardar_puntaje(meta_ingresos, ingresos)
     while running:
         pantalla.fill((20, 20, 40))
