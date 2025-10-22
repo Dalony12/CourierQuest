@@ -1,6 +1,6 @@
 [
     {
-        "meta": 870,
+        "meta": 865,
         "ingresos": 1100.0,
         "exito": true
     },
@@ -10,8 +10,33 @@
         "exito": true
     },
     {
-        "meta": 865,
+        "meta": 870,
         "ingresos": 1100.0,
         "exito": true
+    },
+    {
+        "meta": 850,
+        "ingresos": 880.0,
+        "exito": true
+    },
+    {
+        "meta": 850,
+        "ingresos": 880.0,
+        "exito": true
+    },
+    {
+        "meta": 955,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 800,
+        "ingresos": 0,
+        "exito": false
+    },
+    {
+        "meta": 995,
+        "ingresos": 0,
+        "exito": false
     }
 ]
