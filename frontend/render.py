@@ -24,6 +24,19 @@ def draw_repartidor(pantalla, repartidor, camara, offset_y=0, moving=False):
     surf_rep, rect_rep = camara.apply_surface(surf, rect_rep)
     pantalla.blit(surf_rep, rect_rep)
 
+def draw_repartidorIA(pantalla, repartidorIA, camara, offset_y=0, moving=False):
+    rect_rep = repartidorIA.rect.copy()
+    rect_rep.y += offset_y
+    surf = repartidorIA.imagen_mostrar
+    if moving:
+        w, h = surf.get_size()
+        surf = pygame.transform.scale(surf, (int(w * 1.05), int(h * 1.05)))
+        rect_rep.width = int(rect_rep.width * 1.05)
+        rect_rep.height = int(rect_rep.height * 1.05)
+        rect_rep.center = repartidorIA.rect.center
+    surf_rep, rect_rep = camara.apply_surface(surf, rect_rep)
+    pantalla.blit(surf_rep, rect_rep)
+
 def draw_paquete(pantalla, paquete, camara, tile_size, sprites, is_active=False):
     if not paquete.recogido:
         sprite = sprites.get(f"paquete{paquete.color}")

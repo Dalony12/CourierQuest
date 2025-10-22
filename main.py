@@ -1,5 +1,6 @@
 import pygame
 from core.menu import main_menu
+from core.menu import seleccionar_nivel_IA
 from core.screens import loading_screen
 from core.game import Game
 from core.game_loop import game_loop
@@ -16,6 +17,11 @@ def main():
         if resultado is False:
             break
         pygame.mixer.music.stop()  # Stop menu music
+
+        #pantalla para seleccionar nivel de IA
+        nivel_IA = seleccionar_nivel_IA(pantalla)
+        print(f"[DEBUG] Nivel de IA seleccionado: {nivel_IA}")
+
         # Pantalla de instrucciones
         if resultado is True:
             pygame.mixer.music.stop()
@@ -27,10 +33,11 @@ def main():
             if not ok:
                 print("[DEBUG] loading_screen returned False, exiting main loop.")
                 continue  # Go back to main menu
+       
         # Juego principal
         JUEGO_ANCHO, JUEGO_ALTO = 750, 700
         surface_juego = pygame.Surface((JUEGO_ANCHO, JUEGO_ALTO))
-        game = Game(surface_juego, JUEGO_ANCHO, JUEGO_ALTO)
+        game = Game(surface_juego, JUEGO_ANCHO, JUEGO_ALTO, nivel_IA)
         # Restaurar estado si se cargó partida
         if isinstance(resultado, dict):
             game.cargar_estado(resultado)

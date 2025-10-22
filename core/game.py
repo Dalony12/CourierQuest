@@ -6,6 +6,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from backend.mapa import Mapa
 from backend.repartidor.repartidor import Repartidor
+from backend.repartidorIA import RepartidorIA
 from backend.pedido import Pedido
 from frontend.camara import Camara
 from backend.clima import Clima
@@ -18,7 +19,7 @@ from core.config import TILE_SIZE, ZOOM, ANCHO, ALTO
 from core.undo_system import Caretaker
 
 class Game:
-    def __init__(self, pantalla, ancho_juego, alto_juego):
+    def __init__(self, pantalla, ancho_juego, alto_juego, nivel_IA=1):
         # Obtener datos del mapa
         mapa_data = cargar_con_cache("mapa", APIcontroller.CollectInformacionMapa)
         if not mapa_data:
@@ -41,6 +42,21 @@ class Game:
         self.repartidor.rect.center = (self.mapa.width * TILE_SIZE // 2, self.mapa.height * TILE_SIZE // 2)
         self.repartidor.pos_x = self.repartidor.rect.centerx // TILE_SIZE
         self.repartidor.pos_y = self.repartidor.rect.centery // TILE_SIZE
+
+        # Crear repartidor IA con el nivel seleccionado
+        self.repartidorIA = RepartidorIA(
+            "assets/sprites/repartidor/repartidorArriba.png",
+            "assets/sprites/repartidor/repartidorAbajo.png",
+            "assets/sprites/repartidor/repartidorIzquierda.png",
+            "assets/sprites/repartidor/repartidorDerecha.png",
+            nivel=nivel_IA
+        )
+        self.repartidorIA.set_mapa(self.mapa)
+        self.repartidorIA.camara = self.camara
+        self.repartidorIA.rect.center = (self.mapa.width * TILE_SIZE // 2, self.mapa.height * TILE_SIZE // 2)
+        self.repartidorIA.pos_x = self.repartidor.rect.centerx // TILE_SIZE
+        self.repartidorIA.pos_y = self.repartidor.rect.centery // TILE_SIZE
+
 
         # Crear HUD y pasar referencia al repartidor
         self.hud = HUD(pantalla, repartidor=self.repartidor)

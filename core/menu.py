@@ -93,6 +93,39 @@ def pause_menu(pantalla):
         pygame.display.flip()
         clock.tick(60)
 
+def seleccionar_nivel_IA(pantalla):
+    font = pygame.font.Font(None, 60)
+    small_font = pygame.font.Font(None, 40)
+    clock = pygame.time.Clock()
+    opciones = ["Fácil", "Medio", "Difícil"]
+    niveles = [1, 2, 3]  # valores que se pasarán al RepartidorIA
+    selected = 0
+    running = True
+    while running:
+        pantalla.fill((30, 30, 30))
+        titulo = font.render("Seleccionar Dificultad IA", True, (255, 255, 255))
+        pantalla.blit(titulo, (pantalla.get_width()//2 - titulo.get_width()//2, 120))
+
+        for i, texto in enumerate(opciones):
+            color = (255, 255, 0) if i == selected else (200, 200, 200)
+            opcion = small_font.render(texto, True, color)
+            pantalla.blit(opcion, (pantalla.get_width()//2 - opcion.get_width()//2, 300 + i*60))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return 1  # default nivel fácil
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    selected = (selected - 1) % len(opciones)
+                elif event.key == pygame.K_DOWN:
+                    selected = (selected + 1) % len(opciones)
+                elif event.key == pygame.K_RETURN:
+                    return niveles[selected]  # retorna 1, 2 o 3
+
+        pygame.display.flip()
+        clock.tick(60)
+
 #Muestra el Mensaje de que se guardo la partida
 def mostrar_mensaje_guardado(pantalla):
     import pygame

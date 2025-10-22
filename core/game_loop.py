@@ -1,6 +1,6 @@
 import pygame
 from core.config import FPS, TILE_SIZE
-from frontend.render import draw_map, draw_repartidor
+from frontend.render import draw_map, draw_repartidor, draw_repartidorIA
 from backend.paquete import Paquete
 import random, math
 import time
@@ -545,6 +545,7 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         is_moving = sliding
         draw_map(surface_juego, game.mapa, game.camara, TILE_SIZE)
         draw_repartidor(surface_juego, game.repartidor, game.camara, anim_offset_y, is_moving)
+        draw_repartidorIA(surface_juego, game.repartidorIA, game.camara, anim_offset_y, is_moving)
         # Dibujar partículas del clima
         for p in rain_particles:
             pygame.draw.line(surface_juego, (100, 100, 255), (p["x"], p["y"]), (p["x"] + 2, p["y"] + 10), 1)
