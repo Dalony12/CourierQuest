@@ -13,6 +13,7 @@ class Paquete:
         self.tiempo_limite = 120
         self.retraso = 0
         self.tiempo_aceptado = None
+        self.is_ai = False
 
     def __str__(self):
         return f"Paquete {self.codigo} | {self.origen} → {self.destino} | {self.peso}kg | $ {self.payout}"

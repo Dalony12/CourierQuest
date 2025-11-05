@@ -57,7 +57,6 @@ class Game:
         self.repartidorIA.pos_x = self.repartidor.rect.centerx // TILE_SIZE
         self.repartidorIA.pos_y = self.repartidor.rect.centery // TILE_SIZE
 
-
         # Crear HUD y pasar referencia al repartidor
         self.hud = HUD(pantalla, repartidor=self.repartidor)
 
@@ -87,6 +86,10 @@ class Game:
         # Crear instancia de Clima
         self.clima = Clima(url=None)  # Si no usás la URL directamente, podés dejarla como None
         self.clima._cargar(clima_data)
+
+        # Sync initial weather for IA
+        self.repartidorIA.clima_actual = self.clima.clima_actual
+        self.repartidorIA.intensidad_clima = self.clima.intensidad_actual
 
         self.active_orders = []  # Lista de pedidos activos
         self.active_paquetes = []  # Lista de paquetes activos, paralela a active_orders

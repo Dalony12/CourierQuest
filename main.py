@@ -51,6 +51,5 @@ def main():
         print("[DEBUG] Salió de game_loop.")
         # After game_loop, loop back to main menu
 
-
 if __name__ == "__main__":
     main()

@@ -347,5 +347,14 @@ class HUD:
         path.reverse()
         return path
 
+    def mostrar_mensaje(self, pantalla, mensaje):
+        """Muestra un mensaje temporal en el centro de la pantalla."""
+        font = pygame.font.Font(None, 36)
+        text = font.render(mensaje, True, (255, 255, 255))
+        bg = pygame.Surface((text.get_width() + 20, text.get_height() + 10), pygame.SRCALPHA)
+        bg.fill((0, 0, 0, 128))
+        pantalla.blit(bg, (pantalla.get_width() // 2 - bg.get_width() // 2, pantalla.get_height() // 2 - bg.get_height() // 2))
+        pantalla.blit(text, (pantalla.get_width() // 2 - text.get_width() // 2, pantalla.get_height() // 2 - text.get_height() // 2))
+
     #################################################################################################
 

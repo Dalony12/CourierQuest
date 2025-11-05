@@ -101,6 +101,14 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     barra_tipo = None  # 'recoger' o 'entregar'
     barra_inicio = None
     barra_duracion = 2000  # ms (2 segundos)
+    ai_accept_timer = None
+    ai_aceptado = False
+    barra_carga_ia = None
+    barra_tipo_ia = None
+    barra_inicio_ia = None
+    game.current_focus_ia = 0
+    mensaje_rival = None
+    mensaje_timer = 0
 
     # Initialize order queue with all available orders
     disponibles = game.gestor_pedidos.obtener_disponibles(pygame.time.get_ticks() // 1000)
@@ -224,7 +232,12 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                             game.sound_wind.play(-1)
                     if cansado_playing:
                         sound_cansado.play(-1)
-        game.paquete_activo = game.active_paquetes[game.current_focus] if game.active_paquetes else None
+        player_packages = [p for p in game.active_paquetes if not p.is_ai]
+        if player_packages:
+            game.current_focus = min(game.current_focus, len(player_packages) - 1)
+            game.paquete_activo = player_packages[game.current_focus]
+        else:
+            game.paquete_activo = None
         if pygame.display.get_active():
             pressed = pygame.key.get_pressed()
             if pressed[pygame.K_LEFT] or pressed[pygame.K_a]:
@@ -274,6 +287,9 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                 pedido_info = pedido_queue.pop(0)
                 mostrar_pedido = True
                 sound_nuevoPedido.play()
+                # Set AI accept timer: 2 seconds after player sees the order
+                ai_accept_timer = pygame.time.get_ticks() + 2000
+                ai_aceptado = False
                 delay = get_pedido_delay(len(game.active_paquetes))
                 if delay is not None:
                     pedido_timer = pygame.time.get_ticks() + delay
@@ -288,6 +304,9 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                     pedido_info = pedido_queue.pop(0)
                     mostrar_pedido = True
                     sound_nuevoPedido.play()
+                    # Set AI accept timer: 2 seconds after player sees the order
+                    ai_accept_timer = pygame.time.get_ticks() + 2000
+                    ai_aceptado = False
                     delay = get_pedido_delay(len(game.active_paquetes))
                     if delay is not None:
                         pedido_timer = pygame.time.get_ticks() + delay
@@ -296,6 +315,10 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         game.clima.actualizar_clima()
         estado = game.clima.get_estado_climatico()
         game.repartidor.aplicar_clima(estado["condicion"], estado["intensidad"])
+
+        # Sync weather to IA
+        game.repartidorIA.clima_actual = estado["condicion"]
+        game.repartidorIA.intensidad_clima = estado["intensidad"]
         # Actualizar partículas del clima
         condicion = estado["condicion"]
         intensidad = estado["intensidad"]
@@ -424,7 +447,13 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
             else:
                 rep.rect.centerx = int(slide_start[0] + (slide_end[0] - slide_start[0]) * slide_progress)
                 rep.rect.centery = int(slide_start[1] + (slide_end[1] - slide_start[1]) * slide_progress)
+
+        # Actualizar IA del repartidor CPU
+        game.repartidorIA.actualizar_IA(game.active_paquetes, game.mapa)
+        delta_time = reloj.get_time()
+        game.repartidorIA.update_sliding(delta_time)
         is_moving = sliding or (move_dir and not bloqueado)
+        is_moving_ia = game.repartidorIA.sliding
         if is_moving and not rep.dentro_edificio:
             if not bicycle_playing:
                 sound_bicicleta.play(-1)
@@ -646,6 +675,39 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                 pedido_timer = pygame.time.get_ticks() + delay
             else:
                 pedido_timer = float('inf')
+        # AI acceptance after timer
+        if ai_accept_timer and pygame.time.get_ticks() > ai_accept_timer and not pedido_aceptado and not ai_aceptado and pedido_info:
+            ai_aceptado = True
+            paquete = Paquete()
+            paquete.is_ai = True
+            paquete.codigo = pedido_info.id
+            paquete.origen = tuple(pedido_info.pickup)
+            paquete.destino = tuple(pedido_info.dropoff)
+            paquete.peso = pedido_info.peso
+            paquete.payout = pedido_info.payout
+            paquete.priority = pedido_info.priority
+            paquete.tiempo_aceptado = pygame.time.get_ticks()
+            # Assign unique color
+            used_colors = {p.color for p in game.active_paquetes}
+            available_colors = [c.lower() for c in game.colores_paquete if c.lower() not in used_colors]
+            if available_colors:
+                paquete.color = random.choice(available_colors)
+            else:
+                paquete.color = random.choice(game.colores_paquete).lower()  # fallback if all colors used
+            game.active_orders.append(pedido_info)
+            game.active_paquetes.append(paquete)
+            pedido_info.recogido = True
+            mostrar_pedido = False
+            pedido_info = None
+            ai_aceptado = False
+            # Mostrar mensaje al jugador
+            mensaje_rival = "Tu rival ha tomado el pedido! Ya no lo puedes recoger!"
+            mensaje_timer = 180  # 3 segundos a 60 FPS
+            delay = get_pedido_delay(len(game.active_paquetes))
+            if delay is not None:
+                pedido_timer = pygame.time.get_ticks() + delay
+            else:
+                pedido_timer = float('inf')
         font = pygame.font.Font(None, 32)
         cronometro_txt = f"Fin de turno: {minutos:02d}:{segundos:02d}"
         cronometro = font.render(cronometro_txt, True, (255,255,255))
@@ -702,6 +764,16 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         undo_bg_surface.fill((0, 0, 0, 128))
         pantalla.blit(undo_bg_surface, (10, y_next))
         pantalla.blit(undo_render, (15, y_next + 5))
+        # Mostrar mensaje del rival si corresponde
+        if mensaje_rival and mensaje_timer > 0:
+            mensaje_render = font.render(mensaje_rival, True, (255, 0, 0))
+            mensaje_bg_width = mensaje_render.get_width() + 20
+            mensaje_bg_height = mensaje_render.get_height() + 10
+            mensaje_bg_surface = pygame.Surface((mensaje_bg_width, mensaje_bg_height), pygame.SRCALPHA)
+            mensaje_bg_surface.fill((0, 0, 0, 200))
+            pantalla.blit(mensaje_bg_surface, (pantalla.get_width() // 2 - mensaje_bg_width // 2, pantalla.get_height() // 2 - mensaje_bg_height // 2))
+            pantalla.blit(mensaje_render, (pantalla.get_width() // 2 - mensaje_render.get_width() // 2, pantalla.get_height() // 2 - mensaje_render.get_height() // 2 + 5))
+            mensaje_timer -= 1
         pygame.display.flip()
         reloj.tick(FPS)
         if tiempo_restante <= 0:

@@ -1,10 +1,14 @@
-# TODO for Sound Effects Implementation
+# TODO: Optimizar RepartidorIA para rutas por puertas y wall-following
 
-- [x] Set volume to 0.1 for all sound effects in game_loop.py
-- [x] Add bicycle_playing flag to track if bicycle sound is playing
-- [x] Modify bicycle sound logic: loop when moving and not inside building, stop otherwise
-- [x] Test the changes in the game
-- [ ] Implement wind sound: activate when weather is adverse (clouds, rain_light, rain, storm, fog, heat, cold, wind), vary volume, stop when not
-- [ ] Implement walk sound: loop when moving inside building (on B tiles), stop otherwise
-- [ ] Implement victory sound: play once when player wins
-- [ ] Implement cansado sound: loop while resistencia < 30
+## Tareas Pendientes
+- [ ] Modificar `construir_grafo` para restringir aristas a 'B' solo desde 'D' o 'B'
+- [ ] Mejorar `mover_wall_following` para evitar loops en esquinas (limitar pasos, forzar giros)
+- [ ] Modificar `mover_hacia_objetivo` para calcular ruta a puerta primero para objetivos internos
+- [ ] Asegurar salida completa a calle ('0') después de puerta
+- [ ] Probar en juego: ruta pasa por 'D', entra a 'B', llega a '3', sale a '0', wall-following no loops
+- [ ] Ajustar si problemas en esquinas o rutas
+
+## Notas
+- Tipos: '0'=calle, 'B'=edificio interior, 'D'=puerta, '3'=destino interno
+- Reconstruir grafo cuando cambie allow_enter_building
+- Limitar wall-following a 30 pasos, luego resetear
