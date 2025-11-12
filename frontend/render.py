@@ -24,7 +24,7 @@ def draw_repartidor(pantalla, repartidor, camara, offset_y=0, moving=False):
     surf_rep, rect_rep = camara.apply_surface(surf, rect_rep)
     pantalla.blit(surf_rep, rect_rep)
 
-def draw_repartidorIA(pantalla, repartidorIA, camara, offset_y=0, moving=False):
+def draw_repartidorIA(pantalla, repartidorIA, camara, tile_size, offset_y=0, moving=False):
     rect_rep = repartidorIA.rect.copy()
     rect_rep.y += offset_y
     surf = repartidorIA.imagen_mostrar
@@ -36,6 +36,13 @@ def draw_repartidorIA(pantalla, repartidorIA, camara, offset_y=0, moving=False):
         rect_rep.center = repartidorIA.rect.center
     surf_rep, rect_rep = camara.apply_surface(surf, rect_rep)
     pantalla.blit(surf_rep, rect_rep)
+    # Debug overlay: ruta_actual and puerta
+    if hasattr(repartidorIA, 'debug_draw') and repartidorIA.debug_draw:
+        try:
+            repartidorIA.dibujar_debug(pantalla, camara, tile_size)
+        except Exception:
+            # Do not let debug drawing crash the renderer
+            pass
 
 def draw_paquete(pantalla, paquete, camara, tile_size, sprites, is_active=False):
     if not paquete.recogido:

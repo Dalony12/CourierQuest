@@ -240,6 +240,14 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
             game.paquete_activo = None
         if pygame.display.get_active():
             pressed = pygame.key.get_pressed()
+            # Toggle IA debug overlay with Y key
+            if pressed[pygame.K_y]:
+                # debounce: toggle only when previously not pressed
+                if not hasattr(game, '_ia_debug_y_prev') or not game._ia_debug_y_prev:
+                    game.repartidorIA.debug_draw = not game.repartidorIA.debug_draw
+                game._ia_debug_y_prev = True
+            else:
+                game._ia_debug_y_prev = False
             if pressed[pygame.K_LEFT] or pressed[pygame.K_a]:
                 move_dir = "izq"
             elif pressed[pygame.K_RIGHT] or pressed[pygame.K_d]:
@@ -448,6 +456,40 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
                 rep.rect.centerx = int(slide_start[0] + (slide_end[0] - slide_start[0]) * slide_progress)
                 rep.rect.centery = int(slide_start[1] + (slide_end[1] - slide_start[1]) * slide_progress)
 
+        # Prune any paquetes that were marked entregado by the IA so active lists stay consistent
+        try:
+            for i in range(len(game.active_paquetes)-1, -1, -1):
+                p = game.active_paquetes[i]
+                if getattr(p, 'entregado', False):
+                    # Remove matching active_order if present
+                    try:
+                        delivered_order = game.active_orders[i]
+                        delivered_order.entregado = True
+                        del game.active_orders[i]
+                    except Exception:
+                        delivered_order = None
+                    # Append back to pedido_queue for potential re-offer
+                    try:
+                        if delivered_order is not None:
+                            pedido_queue.append(delivered_order)
+                    except Exception:
+                        pass
+                    # Remove paquete from active_paquetes
+                    try:
+                        del game.active_paquetes[i]
+                    except Exception:
+                        pass
+                    # Adjust current_focus
+                    if game.active_paquetes:
+                        if game.current_focus >= len(game.active_paquetes):
+                            game.current_focus = len(game.active_paquetes) - 1
+                        elif game.current_focus > i:
+                            game.current_focus -= 1
+                    else:
+                        game.current_focus = 0
+        except Exception:
+            pass
+
         # Actualizar IA del repartidor CPU
         game.repartidorIA.actualizar_IA(game.active_paquetes, game.mapa)
         delta_time = reloj.get_time()
@@ -574,7 +616,7 @@ def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
         is_moving = sliding
         draw_map(surface_juego, game.mapa, game.camara, TILE_SIZE)
         draw_repartidor(surface_juego, game.repartidor, game.camara, anim_offset_y, is_moving)
-        draw_repartidorIA(surface_juego, game.repartidorIA, game.camara, anim_offset_y, is_moving)
+        draw_repartidorIA(surface_juego, game.repartidorIA, game.camara, TILE_SIZE, anim_offset_y, is_moving)
         # Dibujar partículas del clima
         for p in rain_particles:
             pygame.draw.line(surface_juego, (100, 100, 255), (p["x"], p["y"]), (p["x"] + 2, p["y"] + 10), 1)

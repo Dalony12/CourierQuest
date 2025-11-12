@@ -198,6 +198,9 @@ class Repartidor:
         return False
 
     def entregar_paquete(self, paquete):
+        # If the package was already marked delivered, do nothing (idempotent)
+        if getattr(paquete, 'entregado', False):
+            return
         # Buscar paquete en inventario por codigo y eliminar esa instancia
         paquete_en_inventario = None
         for p in self.inventario.items:
@@ -207,7 +210,10 @@ class Repartidor:
         if paquete_en_inventario:
             self.inventario.eliminar(paquete_en_inventario)
         else:
-            print(f"Warning: Paquete with codigo {paquete.codigo} not found in inventory during entrega.")
+            # Avoid spamming the log if multiple delivery attempts happen for the same package
+            if not getattr(paquete, '_warned_not_in_inventory', False):
+                print(f"Warning: Paquete with codigo {paquete.codigo} not found in inventory during entrega.")
+                paquete._warned_not_in_inventory = True
         paquete.entregado = True
         # Calcular retraso en segundos
         if paquete.tiempo_aceptado is not None:
