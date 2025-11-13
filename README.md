@@ -124,6 +124,9 @@ Las pilas fueron la solución para gestionar procesos con la estructura **LIFO (
   ```python
   heap_sort(game.active_paquetes, lambda p: (-(p.priority or 0), p.codigo))
   ```
+
+---
+
 ## 🚀 Seguimiento y Actualización del Proyecto
 
 Tras la entrega inicial, CourierQuest ha evolucionado con nuevas ideas y retos.
