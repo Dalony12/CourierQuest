@@ -125,6 +125,23 @@ Las pilas fueron la solución para gestionar procesos con la estructura **LIFO (
   heap_sort(game.active_paquetes, lambda p: (-(p.priority or 0), p.codigo))
   ```
 
+---
+
+## 🚀 Seguimiento y Actualización del Proyecto
+
+Tras la entrega inicial, CourierQuest ha evolucionado con nuevas ideas y retos.
+Durante la fase de mejora del sistema de inteligencia artificial, surgió un nuevo competidor impulsado por IA, capaz de optimizar rutas de entrega y adaptarse dinámicamente al clima del juego.
+
+El sistema de inteligencia artificial ahora cuenta con tres niveles de dificultad:
+
+ - Fácil (Heurística Aleatoria): la IA toma decisiones simples y aleatorias dentro de un rango limitado, priorizando la exploración antes que la eficiencia.
+
+ - Medio (Expectimax): la IA evalúa las posibles decisiones del jugador y calcula rutas con un análisis de probabilidad y recompensa esperada.
+
+ - Difícil (Dijkstra): utiliza el algoritmo de Dijkstra para hallar la ruta más corta y eficiente entre puntos de entrega, maximizando el rendimiento logístico.
+
+Esta actualización marca el inicio de una nueva etapa para CourierQuest, transformándolo de un simulador de entregas a una competencia dinámica entre el jugador y una IA inteligente, reforzando la aplicación práctica de estructuras de datos y algoritmos de búsqueda en entornos de simulación.
+
 ## 👥 Autores
 
 - Javier Garita Granados - [@JavierGarita](https://github.com/Dalony12)
