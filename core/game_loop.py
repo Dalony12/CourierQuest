@@ -12,13 +12,13 @@ from core.sorting import merge_sort, heap_sort
 from core.undo_system import Memento
 
 def get_pedido_delay(active_count):
-    # Always return a finite delay to ensure continuous order arrival
+    # Siempre devolver un retraso finito para asegurar que sigan llegando pedidos
     if active_count == 0:
         return 0
     elif active_count < 5:
-        return 3000  # 3 seconds delay for fewer active packages
+        return 3000  # 3 segundos de retraso cuando hay pocos pedidos activos
     else:
-        return 2000  # 2 seconds delay even if 5 or more active packages
+        return 2000  # 2 segundos de retraso incluso si hay 5 o más pedidos activos
 
 def game_loop(pantalla, game, surface_juego, JUEGO_ANCHO, JUEGO_ALTO):
     print("[DEBUG] game_loop iniciado.")

@@ -102,11 +102,13 @@ class Game:
         self.undo_system = Caretaker()
 
     def generar_estado_actual(self, tiempo_restante):
+        # Atajos locales para no escribir self.x cada vez
         repartidor = self.repartidor
         gestor_pedidos = self.gestor_pedidos
         clima = self.clima
         mapa = self.mapa
 
+        # Devuelve un diccionario con todo el estado necesario para guardar partida
         return {
             "repartidor": {
                 "nombre": repartidor.nombre,
@@ -120,6 +122,8 @@ class Game:
                 "intensidad_clima": repartidor.intensidad_clima,
                 "peso_maximo": repartidor.pesoMaximo,
                 "dentro_edificio": repartidor.dentro_edificio,
+
+                # Inventario del repartidor (solo datos guardables)
                 "inventario": [
                     {
                         "codigo": p.codigo,
@@ -136,6 +140,8 @@ class Game:
                     } for p in repartidor.inventario.obtener_items()
                 ]
             },
+
+            # Pedidos generados por el gestor
             "pedidos": [
                 {
                     "id": p.id,
@@ -150,6 +156,8 @@ class Game:
                     "entregado": p.entregado
                 } for p in gestor_pedidos.pedidos
             ],
+
+            # Estado actual del clima
             "clima": {
                 "ciudad": clima.city_name,
                 "actual": clima.clima_actual,
@@ -158,6 +166,8 @@ class Game:
                 "duracion": clima.duracion_actual,
                 "estados": clima.estados
             },
+
+            # Datos del mapa necesarios para recrearlo
             "mapa": {
                 "ciudad": mapa.city_name,
                 "width": mapa.width,
@@ -167,6 +177,8 @@ class Game:
                 "tiles_raw": mapa.tiles_raw,
                 "legend": mapa.legend
             },
+
+            # IDs de pedidos activos y paquetes en juego
             "active_orders": [p.id for p in self.active_orders],
             "active_paquetes": [
                 {
@@ -183,7 +195,11 @@ class Game:
                     "retraso": p.retraso
                 } for p in self.active_paquetes
             ],
+
+            # Qué pedido está seleccionado
             "current_focus": self.current_focus,
+
+            # Tiempo restante al guardar
             "tiempo_restante": tiempo_restante,
     }
     

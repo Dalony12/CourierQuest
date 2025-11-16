@@ -12,7 +12,8 @@ class RepartidorIA(Repartidor):
     """
     def __init__(self, imagen_arriba, imagen_abajo, imagen_izq, imagen_der, nivel=1):
         super().__init__(imagen_arriba, imagen_abajo, imagen_izq, imagen_der)
-        # Override sprites with IA sprites
+
+        # Sobrescribe los sprites con los sprites especiales de la IA
         escala = (50, 50)
         self.sprites = {
             "arriba": pygame.transform.scale(pygame.image.load("assets/sprites/ia/iaArriba.png").convert_alpha(), escala),
@@ -21,27 +22,37 @@ class RepartidorIA(Repartidor):
             "der": pygame.transform.scale(pygame.image.load("assets/sprites/ia/iaDerecha.png").convert_alpha(), escala),
             "personaje": pygame.transform.scale(pygame.image.load("assets/sprites/ia/iaPersonaje.png").convert_alpha(), escala)
         }
+
         self.imagen_mostrar = self.sprites[self.direccion]
         self.nivel = nivel
+        # Modo de la IA basado en el nivel elegido
         self.mode = {1: "easy", 2: "medium", 3: "hard"}.get(nivel, "easy")
+
         self.objetivo_actual = None
         self.tiempo_objetivo = 0
         self.nombre = f"CPU_{self.mode}"
+          # Control de tiempo entre movimientos
         self.last_move_time = 0
         self.move_delay = 1000 if self.mode == "easy" else 800 if self.mode == "medium" else 600
+
         self.active_paquetes = []
         self.grafo = None
         self.ruta_actual = []
-        # Parameters for medium greedy AI
-        self.medium_horizon = 2  # lookahead steps (2-3 recommended)
-        self.alpha = 1.0  # weight for expected payout
-        self.beta = 1.0   # weight for distance cost
-        self.gamma = 1.0  # weight for weather penalty
+
+        # Parámetros para la IA tipo "medium" (greedy con mirada hacia adelante)
+        self.medium_horizon = 2   # pasos de anticipación (recomendado 2-3)
+        self.alpha = 1.0          # peso del payout esperado
+        self.beta = 1.0           # peso del costo de distancia
+        self.gamma = 1.0          # peso de penalización por clima
+
+         # Variables para deslizamientos
         self.sliding = False
         self.slide_start = None
         self.slide_end = None
         self.slide_progress = 0.0
         self.slide_duration = 0
+
+        # Pila para rutas dentro de edificios
         self.path_stack = []
         self.wall_following = False
         self.follow_direction = None
@@ -49,65 +60,91 @@ class RepartidorIA(Repartidor):
         self.needs_to_exit = False
         self.exit_target = None
         self.allow_enter_building = False
-        # Debug drawing flags (overlay of planned route and door)
+
+        # Flags de depuración (dibujar rutas y puertas)
         self.debug_draw = False
         self.debug_puerta = None
-        # Flag para forzar replan cuando cambiamos de celda
+
+        # Flag para forzar un replan cuando cambie de celda
         self._need_replan = True
-        # Track previous cell for sliding transitions and building path stack
+
+        # Tracking de la celda previa para transiciones de deslizamiento y rutas en edificios
         self._prev_cell = None
-        # Stack of inside-building cells visited after entering (for retracing exit)
+
+        # Pila de celdas internas visitadas dentro del edificio
         self._building_path_stack = []
+
+        # Puerta de entrada del edificio
         self._building_entry_door = None
-        # The street tile just outside the building entry door (so exit retrace ends on street)
+
+        # Celda de calle justo afuera de la puerta (punto donde termina la salida)
         self._building_exit_street_tile = None
-        # Flag: True while the IA is inside a building and should record interior tiles
+
+        # Flag: True mientras la IA está dentro de un edificio (se deben registrar las celdas internas)
         self._inside_building = False
-        # When returning from pickup we may want to pop the recorded building tiles
+
+        # Flag: True cuando se está retrocediendo la ruta después de hacer un pickup
         self._popping_building_stack = False
-        # Timer used when standing on a package tile before picking it up (ms)
+
+        # Temporizador para cuando la IA se queda parada sobre el paquete antes de recogerlo
         self._pickup_wait_start = None
-        # Pickup wait time in milliseconds (how long IA must stand on package tile before pickup)
+
+        # Tiempo que debe esperar sobre un paquete antes de recogerlo (ms)
         self.pickup_wait_ms = 2000
-        # Temporary list of delivered paquetes to remove from global active list on next update
+
+        # Lista temporal de paquetes ya entregados para eliminarlos del sistema en la siguiente actualización
         self._prune_delivered = []
 
+   # -----------------------
+    # Pequeñas funciones auxiliares para manejar la salida de edificios y recoger paquetes
     # -----------------------
-    # Small helpers to reduce duplication around pickup and building exit
-    # -----------------------
+
     def _build_exit_route_from_stack(self):
-        """Build an exit route from recorded building path stack.
-        Returns list of coords or None if no stack present.
+        """Construye una ruta de salida usando el historial de movimiento dentro del edificio.
+        Retorna una lista de coordenadas o None si no hay historial.
         """
         if not getattr(self, '_building_path_stack', None):
             return None
+
+        # Ruta invertida (camino de salida)
         exit_route = list(reversed(self._building_path_stack))
+
+        # Añadir la puerta de entrada si existe
         if getattr(self, '_building_entry_door', None):
             exit_route.append(self._building_entry_door)
-        # Ensure we include the street tile outside the door so the IA ends on the street
+
+        # Asegurar que termine en una celda de calle
         est = getattr(self, '_building_exit_street_tile', None)
-        # If we don't have a cached exit street tile, attempt to compute it now
+
+        # Si no hay una celda de calle, calcularla ahora
         if not est and getattr(self, '_building_entry_door', None):
             try:
                 est = self._find_nearest_street_tile(self._building_entry_door)
                 self._building_exit_street_tile = est
             except Exception:
                 est = None
+
+        # Agregar la celda de calle si hace falta
         if est and (not exit_route or exit_route[-1] != est):
             exit_route.append(est)
-        # Trim leading node if it's the current position
+
+        # Quitar primer nodo si es la posición actual
         if exit_route and exit_route[0] == (self.pos_x, self.pos_y):
             exit_route = exit_route[1:]
+
         return exit_route
 
+
     def _find_nearest_street_tile(self, start):
-        """Return an adjacent or nearest street ('C') tile to `start` using BFS.
-        Returns (x,y) or None if no street tile found.
+        """Busca la celda de calle ('C') más cercana a la coordenada dada usando BFS.
+        Retorna (x,y) o None si no encuentra ninguna.
         """
         if not start or not getattr(self, 'mapa', None):
             return None
+
         sx, sy = start
-        # Check immediate 4-neighbors first
+
+        # Revisar vecinos directos primero
         for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
             nx, ny = sx + dx, sy + dy
             if 0 <= nx < self.mapa.width and 0 <= ny < self.mapa.height:
@@ -117,41 +154,50 @@ class RepartidorIA(Repartidor):
                 except Exception:
                     pass
 
-        # BFS outward to find the nearest street tile
+        # BFS para buscar la calle más cercana
         from collections import deque
         q = deque([(sx, sy)])
         visited = {(sx, sy)}
+
         while q:
             cx, cy = q.popleft()
+
             for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
                 nx, ny = cx + dx, cy + dy
+
                 if not (0 <= nx < self.mapa.width and 0 <= ny < self.mapa.height):
                     continue
                 if (nx, ny) in visited:
                     continue
+
                 visited.add((nx, ny))
+
                 try:
                     if self.mapa.celdas[nx][ny].tipo == 'C' and not self.mapa.celdas[nx][ny].blocked:
                         return (nx, ny)
                 except Exception:
                     pass
+
                 q.append((nx, ny))
+
         return None
 
+
     def _attempt_pickup(self):
-        """Attempt to pick up the current objetivo_actual immediately (no wait timer).
-        Returns True if pickup succeeded and inventory updated, False if failed.
+        """Intenta recoger inmediatamente el paquete objetivo.
+        Retorna True si se recoge exitosamente, False si falla.
         """
         if not getattr(self, 'objetivo_actual', None):
             return False
 
-        # Try pickup immediately
         paquete = self.objetivo_actual
+
+        # Intentar recoger
         try:
             ok = self.recoger_paquete(paquete)
         except Exception:
             ok = False
-        
+
         if ok:
             paquete.recogido = True
             if getattr(self, 'debug_draw', False):
@@ -160,20 +206,24 @@ class RepartidorIA(Repartidor):
                 except Exception:
                     pass
             return True
-        else:
-            # Failed to add to inventory (maybe overweight). Log for debugging and trigger replanning
-            if getattr(self, 'debug_draw', False):
-                try:
-                    print(f"[IA PICKUP-FAIL] codigo={getattr(paquete,'codigo',None)} peso={getattr(paquete,'peso',None)} inv_peso={self.inventario.peso_total()} max={self.pesoMaximo}")
-                except Exception:
-                    pass
-            # Force replan so IA doesn't stay stuck attempting pickup
-            self._need_replan = True
-            return False
+
+        # Falló el pickup (ej: sobrepeso), registrar y forzar replanteo de ruta
+        if getattr(self, 'debug_draw', False):
+            try:
+                print(
+                    f"[IA PICKUP-FAIL] codigo={getattr(paquete,'codigo',None)} "
+                    f"peso={getattr(paquete,'peso',None)} inv_peso={self.inventario.peso_total()} "
+                    f"max={self.pesoMaximo}"
+                )
+            except Exception:
+                pass
+
+        self._need_replan = True
+        return False
 
     def _auto_deliver_if_on_tile(self):
-        """If the IA is standing on a destination tile for any carried package, deliver it immediately.
-        Returns True if a delivery was performed.
+        """Entrega automáticamente un paquete si la IA está sobre su destino.
+        Retorna True si se realizó una entrega.
         """
         try:
             cur = (self.pos_x, self.pos_y)
@@ -182,26 +232,34 @@ class RepartidorIA(Repartidor):
 
         try:
             for p in list(self.active_paquetes):
+                # Solo paquetes recogidos y no entregados
                 if not getattr(p, 'recogido', False) or getattr(p, 'entregado', False):
                     continue
+
                 destino = tuple(p.destino)
+
                 if destino == cur:
-                    # Deliver now
+                    # Entregar ahora
                     try:
                         self.entregar_paquete(p)
                     except Exception:
                         pass
-                    # Mark for pruning and remove from internal active list
+
+                    # Marcar para limpieza
                     try:
                         self._prune_delivered.append(p)
                     except Exception:
                         pass
+
                     try:
-                        self.active_paquetes = [q for q in self.active_paquetes if q.codigo != getattr(p, 'codigo', None)]
+                        self.active_paquetes = [
+                            q for q in self.active_paquetes
+                            if q.codigo != getattr(p, 'codigo', None)
+                        ]
                     except Exception:
                         pass
 
-                    # If delivered inside building, prepare exit route same as pickup logic
+                    # Detectar si entregó dentro de un edificio
                     tipo = None
                     try:
                         if self.mapa:
@@ -210,13 +268,16 @@ class RepartidorIA(Repartidor):
                         tipo = None
 
                     if tipo == 'B' or getattr(self, '_inside_building', False):
+                        # Preparar salida del edificio
                         self.needs_to_exit = True
                         exit_route = self._build_exit_route_from_stack()
+
                         if exit_route:
                             self.ruta_actual = exit_route
                             self._inside_building = False
                             self._popping_building_stack = True
                         else:
+                            # Calcular puerta y calle exterior
                             try:
                                 door = self.find_door_for_building(destino[0], destino[1])
                                 street = self._find_nearest_street_tile(door)
@@ -224,11 +285,15 @@ class RepartidorIA(Repartidor):
                             except Exception:
                                 self.exit_target = None
                     else:
-                        # On street: plan next package or idle
+                        # Entrega en calle → calcular siguiente paquete o quedar idle
                         try:
-                            others = [q for q in self.active_paquetes if not getattr(q, 'entregado', False)]
+                            others = [
+                                q for q in self.active_paquetes
+                                if not getattr(q, 'entregado', False)
+                            ]
                         except Exception:
                             others = []
+
                         if others:
                             try:
                                 self.calcular_ruta_optima(self.active_paquetes)
@@ -236,48 +301,59 @@ class RepartidorIA(Repartidor):
                                 pass
                         else:
                             self.ruta_actual = []
+
                     return True
+
         except Exception:
             return False
+
         return False
 
+
     def update_sliding(self, delta_time):
-        """Update the sliding animation for the IA."""
+        """Actualiza la animación de deslizamiento (slide) entre celdas."""
         if self.sliding and self.slide_start and self.slide_end:
             self.slide_progress += delta_time / self.slide_duration
+
+            # Finaliza el slide
             if self.slide_progress >= 1.0:
                 self.rect.centerx, self.rect.centery = self.slide_end
                 self.pos_x = self.rect.centerx // TILE_SIZE
                 self.pos_y = self.rect.centery // TILE_SIZE
+
                 self.sliding = False
                 self.slide_start = None
                 self.slide_end = None
                 self.slide_progress = 0.0
-                # Al completar el slide (cambio de celda), forzar recálculo de ruta
-                # Mantener rastro de transición para detección de entrada/salida de edificios
+
+                # Detectar entrada/salida de edificios
                 prev = getattr(self, '_prev_cell', None)
+
                 try:
+                    # Tipo de celda previa
                     if prev and self.mapa:
                         px, py = prev
-                        if 0 <= px < self.mapa.width and 0 <= py < self.mapa.height:
-                            prev_tipo = self.mapa.celdas[px][py].tipo
-                        else:
-                            prev_tipo = None
+                        prev_tipo = (self.mapa.celdas[px][py].tipo
+                                    if 0 <= px < self.mapa.width and 0 <= py < self.mapa.height
+                                    else None)
                     else:
                         prev_tipo = None
+
+                    # Tipo actual
                     cur_tipo = None
                     if self.mapa and 0 <= self.pos_x < self.mapa.width and 0 <= self.pos_y < self.mapa.height:
                         cur_tipo = self.mapa.celdas[self.pos_x][self.pos_y].tipo
 
-                    # Entering building: start stack and set inside flag
+                    # Entrando a edificio
                     if prev_tipo != 'B' and cur_tipo == 'B':
                         self._building_path_stack = [(self.pos_x, self.pos_y)]
                         self._inside_building = True
-                        # store entry door if prev was a door
+
+                        # Registrar puerta y calle exterior
                         if prev and self.mapa and self.mapa.celdas[prev[0]][prev[1]].tipo == 'D':
                             self._building_entry_door = prev
-                            # Find an adjacent street tile to the door so we can exit to street
                             self._building_exit_street_tile = None
+
                             for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
                                 sx, sy = prev[0] + dx, prev[1] + dy
                                 if 0 <= sx < self.mapa.width and 0 <= sy < self.mapa.height:
@@ -289,53 +365,57 @@ class RepartidorIA(Repartidor):
                                         pass
                         else:
                             self._building_entry_door = prev
-                            # If previous cell was a street, remember it as exit street
                             self._building_exit_street_tile = prev
 
-                    # Moving deeper inside building: append while we're flagged as inside
+                    # Moviéndose dentro del edificio → guardar trayectoria
                     elif prev_tipo == 'B' and cur_tipo == 'B':
                         if self._inside_building:
                             self._building_path_stack.append((self.pos_x, self.pos_y))
 
-                    # Exiting building naturally (without pickup): clear stack
+                    # Saliendo del edificio
                     elif prev_tipo == 'B' and cur_tipo != 'B':
-                        # Exited building area; clear stored path
                         self._building_path_stack = []
                         self._building_entry_door = None
                         self._building_exit_street_tile = None
                         self._inside_building = False
+
                 except Exception:
                     pass
+
                 self._need_replan = True
-                # clear prev cell marker
                 self._prev_cell = None
+
             else:
-                # Interpolate position
+                # Interpolación de movimiento (slide en progreso)
                 start_x, start_y = self.slide_start
                 end_x, end_y = self.slide_end
                 self.rect.centerx = start_x + (end_x - start_x) * self.slide_progress
                 self.rect.centery = start_y + (end_y - start_y) * self.slide_progress
 
+
     def set_mapa(self, mapa):
-        """Set the mapa and update move_delay based on velocidad and nivel."""
+        """Asigna el mapa a la IA y ajusta la velocidad según el nivel."""
         self.mapa = mapa
-        # Simple grid representation: 0 = street, 1 = building
+
+        # Matriz simple para pathfinding: 0 = calle, 1 = bloqueado/edificio
         self.grid = [[0 for _ in range(mapa.height)] for _ in range(mapa.width)]
         for x in range(mapa.width):
             for y in range(mapa.height):
                 if mapa.celdas[x][y].blocked or mapa.celdas[x][y].tipo == "edificio":
                     self.grid[x][y] = 1
-        # Higher levels move faster to increase difficulty
+
+        # Velocidad según dificultad
         if self.mode == "easy":
-            self.move_delay = 1000  # 1 tile per second
+            self.move_delay = 1000
         elif self.mode == "medium":
-            self.move_delay = 800   # Faster for medium
+            self.move_delay = 800
         elif self.mode == "hard":
-            self.move_delay = 600   # Even faster for hard
+            self.move_delay = 600
 
     def mover_con_direccion(self, dx, dy, limites):
-        """Mueve en la dirección dada, usando la misma lógica que el jugador."""
-        # Set direction
+        """Mueve a la IA en la dirección dada usando la misma lógica del jugador."""
+
+        # Establecer dirección visual
         if dx > 0:
             self.direccion = "der"
         elif dx < 0:
@@ -353,11 +433,13 @@ class RepartidorIA(Repartidor):
                 self.descansar()
                 return
 
+        # Quedó sin energía → bloquear y recuperar
         if self.resistencia <= 0:
             self._bloqueado = True
             self.descansar()
             return
 
+        # Sin movimiento → solo recuperar
         if dx == 0 and dy == 0:
             self.descansar()
             return
@@ -367,10 +449,11 @@ class RepartidorIA(Repartidor):
         desplazamiento_x = dx * velocidad * 17
         desplazamiento_y = dy * velocidad * 17
 
-        # Validar celda destino antes de mover
+        # Calcular celda destino antes de mover
         celda_destino_x = (self.rect.centerx + desplazamiento_x) // self.rect.width
         celda_destino_y = (self.rect.centery + desplazamiento_y) // self.rect.height
 
+        # Mover si la celda destino es válida
         if self.puede_moverse_a(int(celda_destino_x), int(celda_destino_y)):
             self.rect.centerx += desplazamiento_x
             self.rect.centery += desplazamiento_y
@@ -378,18 +461,20 @@ class RepartidorIA(Repartidor):
             self._actualizar_estado()
             self.velocidad_actual()
 
-        # Limitar el movimiento al área visible considerando el zoom de la cámara
+        # Limitar movimiento al área visible según zoom de cámara
         ancho, alto = limites
         zoom = getattr(self.camara, "zoom", 1) if self.camara else 1
         area_visible_w = int(ancho / zoom)
         area_visible_h = int(alto / zoom)
+
         half_w = self.rect.width // 2
         half_h = self.rect.height // 2
+
         self.rect.centerx = max(half_w, min(self.rect.centerx, area_visible_w - half_w))
         self.rect.centery = max(half_h, min(self.rect.centery, area_visible_h - half_h))
 
+        # Actualizar sprite según movimiento
         self._actualizar_sprite()
-
 
     # -----------------------
     # 🔹 Construcción del Grafo Ponderado
